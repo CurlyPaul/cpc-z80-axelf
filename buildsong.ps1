@@ -1,0 +1,2 @@
+rasm ./resources/axelf_compile.asm -o ./artifacts/axelf_rasm_output -s -sl -sq
+disark ./artifacts/axelf_rasm_output.bin ./artifacts/axelf_winape.asm --symbolFile ./artifacts/axelf_rasm_output.sym --sourceProfile winape --loadAddress 0x8000
