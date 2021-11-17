@@ -1,3 +1,24 @@
+;;*****************************************************************************************
+;; Origially based on examples in the zip file found at https://www.chibiakumas.com/z80/
+;;
+;; Public entry points:
+;;
+;;	- Screen_Init
+;;	- GetScreenPos
+;;	- GetNextLine
+;; 	- SwitchScreenBuffer
+;;
+;; Label expectations:
+;; 	- ScreenStartAddressFlag
+;;	- BackBufferAddress
+;;
+;;*****************************************************************************************
+
+;; Version notes - as each copy of this is very different!
+;; Screen buffer switch is in play
+;; Simple FW mode 0 set up
+
+
 CRTC_4000 equ 16
 CRTC_8000 equ 32
 CRTC_C000 equ 48
@@ -61,7 +82,10 @@ GetNextLine:
 	ld h,a				; put the value back in h
 
 _screenBankMod_Minus1:
-	bit 7,h		;Change this to bit 6,h if your screen is at &8000!
+	bit 7,h		;Change this to bit 6,h if your screen is at &8000
+	;;&207C ;; bit 7,h JR NZ // C000
+	;;&2874 ;; bit 6,h JR Z	// 8000
+	;;&287C ;; bit 7,h JR Z	// 4000	
 	jr nz,_getNextLineDone
 	ld de,&C050 	;; x64  bytes 
 	add hl,de
@@ -71,7 +95,9 @@ ret
 
 
 SwitchScreenBuffer:
+	;; Using the shadow registers as this detroys all of them
 	; Flips all the screen buffer variables and moves the back buffer onto the screen
+	exx
 	ld a,(ScreenStartAddressFlag)
 	sub CRTC_8000
 	jr nz, _setScreenBase8000
@@ -97,6 +123,7 @@ _doSwitchScreen:
 	inc b
 	ld a,(ScreenStartAddressFlag)
 	out (c),a
+	exx
 ret
 
 ; This is the screen address table for a standard screen

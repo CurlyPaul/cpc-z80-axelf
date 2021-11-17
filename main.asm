@@ -18,89 +18,118 @@ Start:
         ld (&0038),hl
 
 	ld sp,&3fff
-
+	ei
+	
         ld hl,Music_Start
         xor a                   ;Subsong 0.
         call PLY_AKG_Init
 
-	
-	call Palette_Init
-        ei
+	call Palette_AllBackground
 	call ClearScreen
+
+Sync1:   ld b,&f5
+        in a,(c)
+        rra
+        jr nc,Sync1 + 2
+
 	call SwitchScreenBuffer
 	call ClearScreen
 
+	call Palette_Init
+
 	ld ix,Equaliser
+	ld e,(ix)
 
 Sync:   ld b,&f5
         in a,(c)
         rra
         jr nc,Sync + 2
 	
-	call ClearScreen
-	ld bc,&1500
-	ld d,%11110000
+	call SwitchScreenBuffer	
+
+	ld b,34		;; X
+	ld c,100	;; Y
+	call GetScreenPos;
+	ld b,100	;; 100 lines tall
 	call DrawColumns
+
 	inc ix
-	call SwitchScreenBuffer
+	ld e,(ix)
+	ld a,e
+	cp 0 
+	jr nz,doMusic
+		ld ix,Equaliser
+		ld e,(ix)
 
         ;ld b,80
         ;djnz $  	;; Effectively sets the speed by wasting 90*4 cycles
-
+	doMusic:
+	push de
         ;Calls the player, shows some colors to see the consumed CPU.
-        call PLY_AKG_Play
-
-        ;Endless loop!
+        	call PLY_AKG_Play
+	pop de
+       
         jr Sync
-
-ClearArea:
-	;; INPUTS
-	;; BC = X Y
-	;; IX = Lines to clear
        
 DrawColumns:
 	;; INPUTS
-	;; BC = XY
-	;; IX = Address of Number of lines
-	;; D = Palette index
-	call GetScreenPos;
+	;; HL = Starting screen address -> Mutates, has coord of the last line
+	;; E = Top of the VU
+	;; B = Total number of lines
 
-	ld b,(ix)
-	
+	push bc
+
 	ld a,b
-	cp 0 
-	jr nz,drawLine
-		ld ix,Equaliser
-		inc ix
-		ld b,(ix)
-	drawLine:
+	sub e
+	ld b,a
+	
+	drawBackgroundLine:
 		push bc
 		push hl
-			ld b,25
-			drawRow:
-				ld a,%11110000
-				ld (hl),d
+			ld b,12
+			drawBackgroundRow:
+				ld (hl),%11111111
 				inc hl
-			djnz drawRow		
+			djnz drawBackgroundRow		
 		pop hl
 		pop bc
 		push de
 			call GetNextLine
 		pop de
-		djnz DrawLine
+		djnz drawBackgroundLine
+
+	pop bc
+
+	ld b,e
+
+	drawMainColourLine:
+		push bc
+		push hl
+			ld b,12
+			drawMainColourRow:
+				ld (hl),%00000000
+				inc hl
+			djnz drawMainColourRow		
+		pop hl
+		pop bc
+		push de
+			call GetNextLine
+		pop de
+		djnz drawMainColourLine
+
 ret
 
 
 align 2
-Equaliser:	;; Y Coord of where the top of the column arrives
-	db 100,180,170,10,80,90,0
+Equaliser:	
+	db 10,20,30,40,40,40,40,10,5,10,20,50,60,70,80,90,10,10,10,10,20,20,20,20,30,30,40,50,60,70,80,80,90,90,0
 
 ScreenStartAddressFlag:	db 48  
 ScreenOverflowAddress: 	dw &BFFF
 BackBufferAddress: 	dw &8000 
 
-read "./libs/CPC_V1_SimplePalette.asm"
-read "./libs/CPC_V1_SimpleScreenSetUp.asm"
+read "./libs/CPC_V2_SimplePalette.asm"
+read "./libs/CPC_SimpleScreenSetUp.asm"
 
 	org &4000
 Music_Start:
@@ -110,6 +139,5 @@ Music_Start:
         ;Warning, this must be included BEFORE the player is compiled.
         ;include "./resources/axelf_playerconfig.asm"
         
-        ;include "./resources/axelf.asm"
 	read "./artifacts/axelf_winape.asm"
 Music_End:

@@ -2,9 +2,13 @@
 ;; Originally based an example at http://www.cpcwiki.eu/index.php/Programming An_example_loader
 ;;********************************************************************************************
 
+SeaGreen equ &42
+Black equ &54
+
 ColourPalette: ; hardware colours
 
-defb &44 ;; #0 Darkest Blue 
+
+defb SeaGreen ;; #0  
 defb &55 ;; #1 Blue 
 defb &57 ;; #2 Blue 
 defb &5B ;; #3 Brightest Blue
@@ -19,8 +23,8 @@ defb &5B ;; #11 Brightest Purple (actually blue looks best here)
 defb &4B ;; #12 Another white
 defb &4C ;; #13
 defb &54 ;; #14 Black
-defb &46 ;; #15 Background
-defb &46 ;; Border
+defb &54 ;; #15 Background
+defb Black ;; Border
 
 Palette_Init:
 	;; CPC has some quirks here as well, seems to be caused by the ability to flash each colour
@@ -34,7 +38,7 @@ ret
 Palette_AllBackground:
 	ld b,17			;; 16 colours + 1 border
 	xor a			;; start with pen 0
-	ld e,&46
+	ld e,Black
 DoColours_AllBlack:
 	push bc			;; need to stash b as we are using it for our loop and need it
 				;; below to write to the port 		
