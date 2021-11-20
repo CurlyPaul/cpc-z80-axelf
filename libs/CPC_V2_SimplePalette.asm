@@ -2,29 +2,33 @@
 ;; Originally based an example at http://www.cpcwiki.eu/index.php/Programming An_example_loader
 ;;********************************************************************************************
 
+
+BrightRed equ &4C
+BrightYellow equ &4a
 SeaGreen equ &42
 Black equ &54
+Orange equ &4E
 
 ColourPalette: ; hardware colours
 
 
-defb SeaGreen ;; #0  
-defb &55 ;; #1 Blue 
-defb &57 ;; #2 Blue 
-defb &5B ;; #3 Brightest Blue
-defb &4B ;; #4 White
-defb &5B ;; #5
-defb &53 ;; #6
-defb &5E ;; #7 
-defb &58 ;; #8 Darkest Purple
-defb &5D ;; #9 Purple
-defb &5F ;; #10 Purple
-defb &5B ;; #11 Brightest Purple (actually blue looks best here)
-defb &4B ;; #12 Another white
-defb &4C ;; #13
-defb &54 ;; #14 Black
-defb &54 ;; #15 Background
-defb Black ;; Border
+defb SeaGreen 		;; #0  
+defb BrightRed 		;; #1 
+defb Orange 		;; #2  
+defb BrightYellow	;; #3 
+defb &4B 		;; #4 
+defb &5B 		;; #5
+defb &53 		;; #6
+defb &5E 		;; #7 
+defb &58 		;; #8 
+defb &5D 		;; #9 
+defb &5F 		;; #10
+defb &5B 		;; #11
+defb &4B 		;; #12
+defb &4C 		;; #13
+defb &54 		;; #14 
+defb &54 		;; #15 
+defb Black	 	;; Border
 
 Palette_Init:
 	;; CPC has some quirks here as well, seems to be caused by the ability to flash each colour

@@ -77,6 +77,7 @@ ret
 GetNextLine:
 	;; Inputs: HL Current screen memory location
 	;; Returns: HL updated to the start of the next line
+	;; Destroes: DE
 	ld a,h				; load the high byte of hl into a
 	add &08				; it's just a fact that each line is + &0800 from the last one
 	ld h,a				; put the value back in h
