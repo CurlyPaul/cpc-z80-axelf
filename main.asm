@@ -45,36 +45,11 @@ Sync:   ld b,&f5
         in a,(c)
         rra
         jr nc,Sync + 2
-	
+
 	call SwitchScreenBuffer	
-
-	ld b,34		;; X
-	ld c,100	;; Y
-	call GetScreenPos;
-	ld b,100	;; 100 lines tall
-	push de
 	call DrawColumns
-	pop de
-	call IncrementEqualiser
-
-	ld b,20		;; X
-	ld c,100	;; Y
-	call GetScreenPos;
-	ld b,100	;; 100 lines tall
-	push de
-	call DrawColumns
-	pop de
-	call IncrementEqualiser
-
-	ld b,48		;; X
-	ld c,100	;; Y
-	call GetScreenPos;
-	ld b,100	;; 100 lines tall
-	push de
-	call DrawColumns
-	pop de
-	call IncrementEqualiser
-
+	
+	
         ;ld b,80
         ;djnz $  	;; Effectively sets the speed by wasting 90*4 cycles
 	doMusic:
@@ -85,48 +60,107 @@ Sync:   ld b,&f5
        
         jr Sync
 
+DrawColumns:
+	;; INPUTS
+	;; HL = Starting screen address 
+	;; E = Top of the VU
+	;; Hard coded widths of columns, but should all be contained in here	
+
+	;; Draw one column
+	ld b,24		;; X
+	ld c,100	;; Y
+	call GetScreenPos;
+	push hl
+		ld b,84		;; lines tall
+		ld c,8
+		push de
+			call DrawColumn
+		pop de
+		call IncrementEqualiser
+
+		;; Then half of the middle column
+		ld b,34		;; X
+		ld c,100	;; Y
+		call GetScreenPos;
+		ld b,84		;; lines tall
+		ld c,5
+		push de
+			call DrawColumn
+		pop de
+		call IncrementEqualiser
+	pop hl			;; Restore the scr address of the first row drawn
+
+	ld b,42	;; No. lines tall /2
+	_mirrorColumns:
+	push de
+	push bc
+	push hl		;; Preserve the scr address of the first byte of the first line
+		
+			ld a,32		;; 40 - full the width of the drawing area
+			;; iy = hl + a		;; If HL == 84C6 Assert IY = 84C6 + 40d = 84EE
+			add   a, l    ; A = A+L
+			ld    iyl,a    ; iyl = A+L	
+  			adc   a,h    	; A = A+L+H+carry
+    			sub   iyl       ; A = iyl+carry
+    			ld    iyh, a    ; D = iyl+carry
+	
+		;; IY must hold the scr address of the end of the line
+		;; So HL must point to the data at the start of the line
+
+			ld b,8			;; Words to copy
+			ld (StackBackup),sp
+			ld sp,iy		;; Put the stack pointer at far right of the area we want to draw
+			_copyLine:
+				ld d,(hl)		;; Load de with the pixel byte from hl
+				inc hl
+				ld e,(hl)
+				inc hl		
+				push de			;; Push it into the copy
+				djnz _copyLine		
+			ld sp,(StackBackup)
+	pop hl
+	pop bc
+	
+	Call GetNextLine
+	Call GetNextLine
+	pop de
+	djnz _mirrorColumns	
+		
+ret
+
 IncrementEqualiser:
 	inc ix
 	ld e,(ix)
 	ld a,e
 	cp 0 
-	jr nz,equaliserDone
+	jr z,equaliserDone
+		ret
+	equaliserDone:
 		ld ix,Equaliser
 		ld e,(ix)
-	equaliserDone:
 ret 
       
-DrawColumns:
+DrawColumn:
 	;; INPUTS
 	;; HL = Starting screen address -> Mutates, has coord of the last line
 	;; E = Top of the VU
+	;; C = Width
 	;; B = Total number of lines
-
-	push bc
-
-	ld a,b
-	sub e
-	ld b,a
 	
-	drawBackgroundLine:
-		push bc
-		push hl
-			ld b,12
-			drawBackgroundRow:
-				ld (hl),%11111111
-				inc hl
-			djnz drawBackgroundRow		
-		pop hl
-		pop bc
-		push de
-			call GetNextLine
-		pop de
-		djnz drawBackgroundLine
-
+	sra b		;; Half these values as we are drawring two lines at a time
+	sra e
+		
+	push bc
+		;; TODO This need a zero check so in order for the colours to reach the top of the bar
+		ld a,b
+		sub e
+		ld b,a
+	
+		ld d,&ff
+		call DrawColouredLine
 	pop bc
 
 	ld b,e		;; B = the top line of the VU
-	sra b		;; Half it as we are drawing two lines at a time
 
 _drawRedLines:
 	ld a,b
@@ -184,43 +218,39 @@ ret
 
 DrawColouredLine:
 	;; INPUTS
+	;; HL = Scr Address
 	;; B = Number of lines to draw
 	;; D = Byte to draw
-	push bc		
+	;; C = width
+	push bc
+	push de		;; Preserve the pallet colour for the next row	
+	
 		push hl		;; Preserve HL while we add the X values
-			ld b,12
-			drawMainColourRow:
-				ld (hl),d
-				inc hl
-			djnz drawMainColourRow		
+		push bc		;; Preserve the width in C
+			ld (hl),d
+			push hl
+			pop de
+			inc de
+			ld b,0
+			ldir			
+		pop bc
 		pop hl		;; Return HL to the start of the row
 		
-		push de
 			call GetNextLine
-		pop de
-		
-		push hl
-			ld b,12
-			drawMainColourRowBlack:
-				ld (hl),%11111111
-				inc hl
-			djnz drawMainColourRowBlack		
-		pop hl
-	
-		push de		;; Need to preserve D as it has the palette colour in it
 			call GetNextLine
-		pop de
+	pop de
 	pop bc	
 	djnz DrawColouredLine
 ret
 
 align 2
-Equaliser:	
-	db 98,10,20,80,30,30,40,40,50,40,20,50,30,20,50,60,72,40,80,95,10,60,80,85,20,30,20,20,30,30,40,50,60,70,80,80,90,90,0
+Equaliser:	;; Needs an even number in it ??
+	db 20,40,50,44,30,30,40,40,48,40,20,48,30,20,50,60,72,40,78,65,10,60,0
 
 ScreenStartAddressFlag:	db 48  
 ScreenOverflowAddress: 	dw &BFFF
 BackBufferAddress: 	dw &8000 
+StackBackUp		dw 0
 
 read "./libs/CPC_V2_SimplePalette.asm"
 read "./libs/CPC_SimpleScreenSetUp.asm"
