@@ -52,15 +52,28 @@ Sync:   ld b,&f5
 	ld c,100	;; Y
 	call GetScreenPos;
 	ld b,100	;; 100 lines tall
+	push de
 	call DrawColumns
+	pop de
+	call IncrementEqualiser
 
-	inc ix
-	ld e,(ix)
-	ld a,e
-	cp 0 
-	jr nz,doMusic
-		ld ix,Equaliser
-		ld e,(ix)
+	ld b,20		;; X
+	ld c,100	;; Y
+	call GetScreenPos;
+	ld b,100	;; 100 lines tall
+	push de
+	call DrawColumns
+	pop de
+	call IncrementEqualiser
+
+	ld b,48		;; X
+	ld c,100	;; Y
+	call GetScreenPos;
+	ld b,100	;; 100 lines tall
+	push de
+	call DrawColumns
+	pop de
+	call IncrementEqualiser
 
         ;ld b,80
         ;djnz $  	;; Effectively sets the speed by wasting 90*4 cycles
@@ -71,7 +84,18 @@ Sync:   ld b,&f5
 	pop de
        
         jr Sync
-       
+
+IncrementEqualiser:
+	inc ix
+	ld e,(ix)
+	ld a,e
+	cp 0 
+	jr nz,equaliserDone
+		ld ix,Equaliser
+		ld e,(ix)
+	equaliserDone:
+ret 
+      
 DrawColumns:
 	;; INPUTS
 	;; HL = Starting screen address -> Mutates, has coord of the last line
@@ -192,7 +216,7 @@ ret
 
 align 2
 Equaliser:	
-	db 98,10,20,30,30,40,40,40,40,20,50,30,20,50,60,72,40,80,0,95,10,10,10,10,20,20,20,20,30,30,40,50,60,70,80,80,90,90,0
+	db 98,10,20,80,30,30,40,40,50,40,20,50,30,20,50,60,72,40,80,95,10,60,80,85,20,30,20,20,30,30,40,50,60,70,80,80,90,90,0
 
 ScreenStartAddressFlag:	db 48  
 ScreenOverflowAddress: 	dw &BFFF
