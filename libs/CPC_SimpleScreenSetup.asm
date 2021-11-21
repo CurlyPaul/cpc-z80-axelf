@@ -98,6 +98,7 @@ ret
 SwitchScreenBuffer:
 	;; Using the shadow registers as this detroys all of them
 	; Flips all the screen buffer variables and moves the back buffer onto the screen
+	di
 	exx
 	ld a,(ScreenStartAddressFlag)
 	sub CRTC_8000
@@ -125,6 +126,7 @@ _doSwitchScreen:
 	ld a,(ScreenStartAddressFlag)
 	out (c),a
 	exx
+	ei
 ret
 
 ; This is the screen address table for a standard screen

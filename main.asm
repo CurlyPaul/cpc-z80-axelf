@@ -6,7 +6,7 @@
         ;bankset 0
 
         org &1000
-;write direct 'axelf.bin',&1000
+write direct 'axelf.bin',&1000
 run Start
 Start:
 
@@ -28,10 +28,10 @@ Start:
 	call Palette_AllBackground
 	call ClearScreen
 
-Sync1:   ld b,&f5
+SyncForScreenSetUp:   ld b,&f5
         in a,(c)
         rra
-        jr nc,Sync1 + 2
+        jr nc,SyncForScreenSetUp + 2
 
 	call SwitchScreenBuffer
 	call ClearScreen
@@ -49,12 +49,9 @@ Sync:   ld b,&f5
 	call SwitchScreenBuffer	
 	call DrawColumns
 	
-	
-        ;ld b,80
-        ;djnz $  	;; Effectively sets the speed by wasting 90*4 cycles
 	doMusic:
 	push de
-        ;Calls the player, shows some colors to see the consumed CPU.
+        	;Calls the player, shows some colors to see the consumed CPU.
         	call PLY_AKG_Play
 	pop de
        
@@ -67,15 +64,14 @@ DrawColumns:
 	;; Hard coded widths of columns, but should all be contained in here	
 
 	;; Draw one column
-	ld b,24		;; X
+	ld b,26		;; X
 	ld c,100	;; Y
 	call GetScreenPos;
 	push hl
 		ld b,84		;; lines tall
-		ld c,8
-		push de
-			call DrawColumn
-		pop de
+		ld c,6		;; bytes wide
+		
+		call DrawColumn
 		call IncrementEqualiser
 
 		;; Then half of the middle column
@@ -83,10 +79,8 @@ DrawColumns:
 		ld c,100	;; Y
 		call GetScreenPos;
 		ld b,84		;; lines tall
-		ld c,5
-		push de
-			call DrawColumn
-		pop de
+		ld c,3
+		call DrawColumn
 		call IncrementEqualiser
 	pop hl			;; Restore the scr address of the first row drawn
 
@@ -95,8 +89,12 @@ DrawColumns:
 	push de
 	push bc
 	push hl		;; Preserve the scr address of the first byte of the first line
+			
+			;; IY must hold the scr address of the end of the line
+			;; So HL is needed point to the data at the start of the line
 		
-			ld a,32		;; 40 - full the width of the drawing area
+			ld a,24		;; full the width of the drawing area in bytes
+			;; need to do this manually as won't be able to push/pop HL
 			;; iy = hl + a		;; If HL == 84C6 Assert IY = 84C6 + 40d = 84EE
 			add   a, l    ; A = A+L
 			ld    iyl,a    ; iyl = A+L	
@@ -104,10 +102,9 @@ DrawColumns:
     			sub   iyl       ; A = iyl+carry
     			ld    iyh, a    ; D = iyl+carry
 	
-		;; IY must hold the scr address of the end of the line
-		;; So HL must point to the data at the start of the line
-
-			ld b,8			;; Words to copy
+		
+			ld b,6			;; Words to copy
+			di			;; We automatically get an ei when RST #38 triggers, thus screwing us over as that appears to write a byte to the stack 
 			ld (StackBackup),sp
 			ld sp,iy		;; Put the stack pointer at far right of the area we want to draw
 			_copyLine:
@@ -118,6 +115,7 @@ DrawColumns:
 				push de			;; Push it into the copy
 				djnz _copyLine		
 			ld sp,(StackBackup)
+			ei
 	pop hl
 	pop bc
 	
@@ -133,9 +131,9 @@ IncrementEqualiser:
 	ld e,(ix)
 	ld a,e
 	cp 0 
-	jr z,equaliserDone
+	jr z,resetEqualiser
 		ret
-	equaliserDone:
+	resetEqualiser:
 		ld ix,Equaliser
 		ld e,(ix)
 ret 
@@ -244,8 +242,8 @@ DrawColouredLine:
 ret
 
 align 2
-Equaliser:	;; Needs an even number in it ??
-	db 20,40,50,44,30,30,40,40,48,40,20,48,30,20,50,60,72,40,78,65,10,60,0
+Equaliser:	;; No need to be even
+	db 72,40,45,50,44,72,60,50,40,48,36,20,10,20,30,40,52,60,70,80,10,60,0
 
 ScreenStartAddressFlag:	db 48  
 ScreenOverflowAddress: 	dw &BFFF
@@ -255,14 +253,8 @@ StackBackUp		dw 0
 read "./libs/CPC_V2_SimplePalette.asm"
 read "./libs/CPC_SimpleScreenSetUp.asm"
 
-;write direct 'music.bin',&4000
+write direct 'music.bin',&4000
 org &4000
 Music_Start:
-        ;Include here the Player Configuration source of the songs (you can generate them with AT2 while exporting the songs).
-        ;If you don't have any, the player will use a default Configuration (full code used), which may not be optimal.
-        ;If you have several songs, include all their configuration here, their flags will stack up!
-        ;Warning, this must be included BEFORE the player is compiled.
-        ;include "./resources/axelf_playerconfig.asm"
-        
 	read "./artifacts/axelf_winape.asm"
 Music_End:
