@@ -1,5 +1,5 @@
 ;Compiles the player, the music and sfxs, using RASM.
-;No ORG needed.
+;No ORG needed - Ammendment, seems that for winape at least, an org is needed
 org #4000
     ;This is the music, and its config file.
     include "axelf.asm" 

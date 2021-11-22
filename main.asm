@@ -6,7 +6,8 @@
         ;bankset 0
 
         org &1000
-write direct 'axelf.bin',&1000
+;write direct 'axelf.bin',&1000
+debug equ 1
 run Start
 Start:
 
@@ -39,6 +40,7 @@ SyncForScreenSetUp:   ld b,&f5
 	call Palette_Init
 
 	ld ix,Equaliser
+	ld iy,ScreenDrawTable
 	ld e,(ix)
 
 Sync:   ld b,&f5
@@ -47,17 +49,75 @@ Sync:   ld b,&f5
         jr nc,Sync + 2
 
 	call SwitchScreenBuffer	
-	call DrawColumns
-	
-	doMusic:
-	push de
-        	;Calls the player, shows some colors to see the consumed CPU.
-        	call PLY_AKG_Play
-	pop de
-       
-        jr Sync
 
-DrawColumns:
+	;; a jump table would mean reducing a into descrete values
+	;; if I use a descreasing ticker
+	;; when the ticker reaches zero
+	;; increment a pointer to 
+
+	ld a,(&414c)	;; PLY_AKG_TICKDECREASINGCOUNTER but defined in a way winape doesn't get	
+	cp a,1
+	jr nz,@doDrawing
+		;; decrement our slow ticker
+		ld a,(ScreenIndexCountdown)
+		dec a
+		jr nz,@saveIndexAndDoDrawing
+			inc iy
+			inc iy
+			inc iy
+			ld a,(iy)
+			cp a,0
+			jr nz,@resetCountdownAndChangeScreen
+				ld iy,ScreenDrawTable	;; Reset the screen script to the start
+			@resetCountdownAndChangeScreen
+			ld h,(iy+1)
+			ld l,a
+			ld (JumpDrawRountine-2),hl
+
+			ld a,(iy+2)
+			
+	@saveIndexAndDoDrawing
+		ld (ScreenIndexCountdown),a
+	@doDrawing:
+	push iy
+		;ld a,0		;; Index * 3 to account for the length of the jp command
+		;ld ($+4),a
+		;jr $
+	
+		call DrawSingleSet:JumpDrawRountine	
+		;jr DrawDualSet
+		;jr DrawQuadSet
+
+		doMusic:
+		push de
+    		    	;Calls the player, shows some colors to see the consumed CPU.
+  		      	call PLY_AKG_Play
+		pop de
+	pop iy
+jr Sync
+
+ScreenIndexCountdown	db 16	;; TODO Should use some code to init this
+
+ScreenDrawTable:	
+	dw DrawSingleSet
+	db 16
+	dw DrawDualSet
+	db 16
+	dw DrawQuadSet
+	db 16
+	dw DrawSingleSet
+	db 16
+	db 0	
+
+DrawDualSet:
+
+ret
+
+DrawQuadSet:
+
+ret
+
+DrawSingleSet:
 	;; INPUTS
 	;; HL = Starting screen address 
 	;; E = Top of the VU
@@ -123,7 +183,6 @@ DrawColumns:
 	Call GetNextLine
 	pop de
 	djnz _mirrorColumns	
-		
 ret
 
 IncrementEqualiser:
@@ -243,7 +302,8 @@ ret
 
 align 2
 Equaliser:	;; No need to be even
-	db 72,40,45,50,44,72,60,50,40,48,36,20,10,20,30,40,52,60,70,80,10,60,0
+	db 72,40,40,40,40,40,40,40,40,40
+	db 40,40,40,40,40,40,40,40,40,40,0
 
 ScreenStartAddressFlag:	db 48  
 ScreenOverflowAddress: 	dw &BFFF
@@ -253,7 +313,7 @@ StackBackUp		dw 0
 read "./libs/CPC_V2_SimplePalette.asm"
 read "./libs/CPC_SimpleScreenSetUp.asm"
 
-write direct 'music.bin',&4000
+;write direct 'music.bin',&4000
 org &4000
 Music_Start:
 	read "./artifacts/axelf_winape.asm"
