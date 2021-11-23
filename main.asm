@@ -7,7 +7,9 @@
 
         org &1000
 ;write direct 'axelf.bin',&1000
-debug equ 1
+BlockWidth equ 20
+BlockHeight equ 84
+
 run Start
 Start:
 
@@ -41,7 +43,6 @@ SyncForScreenSetUp:   ld b,&f5
 
 	ld ix,Equaliser
 	ld iy,ScreenDrawTable
-	ld e,(ix)
 
 Sync:   ld b,&f5
         in a,(c)
@@ -69,6 +70,7 @@ Sync:   ld b,&f5
 			cp a,0
 			jr nz,@resetCountdownAndChangeScreen
 				ld iy,ScreenDrawTable	;; Reset the screen script to the start
+				ld a,(iy)
 			@resetCountdownAndChangeScreen
 			ld h,(iy+1)
 			ld l,a
@@ -80,19 +82,8 @@ Sync:   ld b,&f5
 		ld (ScreenIndexCountdown),a
 	@doDrawing:
 	push iy
-		;ld a,0		;; Index * 3 to account for the length of the jp command
-		;ld ($+4),a
-		;jr $
-	
 		call DrawSingleSet:JumpDrawRountine	
-		;jr DrawDualSet
-		;jr DrawQuadSet
-
-		doMusic:
-		push de
-    		    	;Calls the player, shows some colors to see the consumed CPU.
-  		      	call PLY_AKG_Play
-		pop de
+ 	      	call PLY_AKG_Play
 	pop iy
 jr Sync
 
@@ -100,48 +91,196 @@ ScreenIndexCountdown	db 16	;; TODO Should use some code to init this
 
 ScreenDrawTable:	
 	dw DrawSingleSet
-	db 16
+	db 15
+	dw ClearSingleSet	;; TODO Having this here leaves me with a blank frame
+	db 1
 	dw DrawDualSet
-	db 16
-	dw DrawQuadSet
-	db 16
+	db 15
+	dw ClearDualSet
+	db 1
 	dw DrawSingleSet
-	db 16
-	db 0	
-
-DrawDualSet:
-
-ret
+	db 15
+	dw ClearSingleSet
+	db 1
+	dw DrawQuadSet
+	db 15
+	dw ClearQuadSet
+	db 1
+	dw 0	
 
 DrawQuadSet:
+	call DrawDualSet
 
+	ld b,10			;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL == start point
+
+	push hl
+		;ld de,10	;; screen width - 10 pixel border
+		;add hl,de
+		;inc hl
+
+		ld b,46+BlockWidth+1	;; X
+		ld c,10		;; Y
+		call GetScreenPos	;; <-- this is wasteful as the line number won't change
+
+		push hl
+		pop iy		;; IY = destination address 
+	pop hl
+
+	ld b, BlockHeight/2
+	ld c, 29
+	call BlockCopy
 ret
 
-DrawSingleSet:
+ClearQuadSet:
 	;; INPUTS
-	;; HL = Starting screen address 
-	;; E = Top of the VU
+	call ClearDualSet
+
+	ld b,10			;; X
+	ld c,10			;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth+BlockWidth+16	
+	
+	call ClearArea	
+ret	
+
+DrawSingleSet:
+	ld b,28		;; X
+	ld c,110	;; Y
+	call GetScreenPos
+	call DrawColumns
+ret
+
+ClearSingleSet:
+	;; INPUTS
+	ld b,28			;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth+2	;; Don't understand why I need a +2 here	
+	
+	call ClearArea
+ret
+
+DrawDualSet:
+	ld b,10		;; X
+	ld c,110	;; Y	
+	call GetScreenPos
+	
+	push hl	;; Preseve the address of the first block
+		call DrawColumns
+	
+		ld b,46+BlockWidth+1	;; X
+		ld c,110		;; Y
+		call GetScreenPos	;; <-- this is wasteful as the line number won't change
+		push hl
+		pop iy
+	pop hl	;; Hl now holds the source address		
+	
+	ld b, BlockHeight/2
+	ld c, 20/2 + 2	;; BlockWidth / (bytes per word) + Adjust for way SP moves before writing
+	call BlockCopy
+ret
+
+ClearDualSet:
+	;; INPUTS
+	ld b,10			;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
+	
+	call ClearArea	
+ret	
+
+ClearArea
+	@clearNextLine
+	push bc			;; Preserve the width in C
+		push hl		;; Preserve HL while we add the X values		
+			ld (hl),&ff
+			push hl
+			pop de
+			inc de
+			ld b,0
+			ldir			
+	
+		pop hl		;; Return HL to the start of the row	
+		call GetNextLine
+		call GetNextLine
+
+	pop bc	
+	djnz @clearNextLine
+ret
+
+BlockCopy
+	;; INPUTS
+	;; HL source screen address 
+	;; B Lines / 2
+	;; C Words to copy
+	;; IY Destination X+Width+1,Y
+
+	;; Just like mirror colomns, put the SP at the right of the line
+	@copyNextLine
+	push bc
+	push hl
+		ld b,c
+		di			 
+		ld (StackBackup),sp
+		ld sp,iy		;; Put the stack pointer at far right of the area we want to draw
+		@copyLine:
+			ld d,(hl)		;; Load de with the pixel byte from hl
+			inc hl
+			ld e,(hl)
+			inc hl	
+			;ld de,%11001100	
+			push de			;; Push it into the copy
+		djnz @copyLine		
+		ld sp,(StackBackup)
+		ei
+	pop hl	;; restore the start address'
+
+
+	call GetNextLine
+	call GetNextLine
+
+	push hl
+		push iy
+		pop hl
+		call GetNextLine
+		call GetNextLine
+		push hl
+		pop iy
+	pop hl 
+	pop bc
+
+	djnz @copyNextLine
+ret
+
+DrawColumns:
+	;; INPUTS
+	;; HL = XY of the bounding box
 	;; Hard coded widths of columns, but should all be contained in here	
 
-	;; Draw one column
-	ld b,26		;; X
-	ld c,100	;; Y
-	call GetScreenPos;
 	push hl
-		ld b,84		;; lines tall
-		ld c,6		;; bytes wide
-		
+		ld c,6			;; bytes wide
 		call DrawColumn
 		call IncrementEqualiser
-
-		;; Then half of the middle column
-		ld b,34		;; X
-		ld c,100	;; Y
-		call GetScreenPos;
-		ld b,84		;; lines tall
+	pop hl			;; Restore the scr address of the first row drawn
+	push hl
+	
+		;; Then draw half of the middle column
+		inc hl ;; Account for the gap between them
+		ld a,l
+		add 7
+		ld l,a
 		ld c,3
 		call DrawColumn
-		call IncrementEqualiser
+	call IncrementEqualiser
 	pop hl			;; Restore the scr address of the first row drawn
 
 	ld b,42	;; No. lines tall /2
@@ -152,8 +291,7 @@ DrawSingleSet:
 			
 			;; IY must hold the scr address of the end of the line
 			;; So HL is needed point to the data at the start of the line
-		
-			ld a,24		;; full the width of the drawing area in bytes
+			ld a,23		;; full the width of the drawing area in bytes
 			;; need to do this manually as won't be able to push/pop HL
 			;; iy = hl + a		;; If HL == 84C6 Assert IY = 84C6 + 40d = 84EE
 			add   a, l    ; A = A+L
@@ -187,36 +325,33 @@ ret
 
 IncrementEqualiser:
 	inc ix
-	ld e,(ix)
-	ld a,e
+	ld a,(ix)
 	cp 0 
 	jr z,resetEqualiser
 		ret
 	resetEqualiser:
 		ld ix,Equaliser
-		ld e,(ix)
 ret 
       
 DrawColumn:
 	;; INPUTS
 	;; HL = Starting screen address -> Mutates, has coord of the last line
-	;; E = Top of the VU
+	;; (IX) = Top of the VU
 	;; C = Width
-	;; B = Total number of lines
 	
-	sra b		;; Half these values as we are drawring two lines at a time
-	sra e
-		
+	ld e,(ix)		
+	sra e			;; Half these values as we are drawring two lines at a time
+
 	push bc
-		;; TODO This need a zero check so in order for the colours to reach the top of the bar
-		ld a,b
-		sub e
+		ld a,BlockHeight/2
+		sub e		;; A = LineCount - NumberOfColouredLines = number of lines to blankout
 		ld b,a
-	
+		
 		ld d,&ff
 		call DrawColouredLine
 	pop bc
 
+@drawColours
 	ld b,e		;; B = the top line of the VU
 
 _drawRedLines:
@@ -302,8 +437,8 @@ ret
 
 align 2
 Equaliser:	;; No need to be even
-	db 72,40,40,40,40,40,40,40,40,40
-	db 40,40,40,40,40,40,40,40,40,40,0
+	db 10,30,44,50,10,20,30,25,40,50,60,40,70
+	db 75,80,10,20,10,55,30,40,40,40,0
 
 ScreenStartAddressFlag:	db 48  
 ScreenOverflowAddress: 	dw &BFFF
