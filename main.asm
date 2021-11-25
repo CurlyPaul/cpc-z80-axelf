@@ -6,6 +6,7 @@
         ;bankset 0
 
         org &1000
+nolist
 ;write direct 'axelf.bin',&1000
 
 run Start
@@ -201,11 +202,10 @@ ClearArea
 			pop de
 			inc de
 			ld b,0
-			ldir			
+			ldir	;; TODO this could also use the stack		
 	
 		pop hl		;; Return HL to the start of the row	
-		call GetNextLine
-		call GetNextLine
+		call GetNextAltLine
 
 	pop bc	
 	djnz @clearNextLine
@@ -230,23 +230,19 @@ BlockCopy
 			ld d,(hl)		;; Load de with the pixel byte from hl
 			inc hl
 			ld e,(hl)
-			inc hl	
-			;ld de,%11001100	
+			inc hl		
 			push de			;; Push it into the copy
 		djnz @copyLine		
 		ld sp,(StackBackup)
 		ei
 	pop hl	;; restore the start address'
 
-
-	call GetNextLine
-	call GetNextLine
+	call GetNextAltLine
 
 	push hl
-		push iy
-		pop hl
-		call GetNextLine
-		call GetNextLine
+		push iy			;; IY is the stack pointer address
+		pop hl			;; pop it onto HL
+		call GetNextAltLine	;; so that I can advance to the next line
 		push hl
 		pop iy
 	pop hl 
@@ -301,7 +297,7 @@ DrawColumns:
 	push hl
 		ld c,6			;; bytes wide
 		call DrawColumn
-		;call IncrementEqualiser
+
 	pop hl			;; Restore the scr address of the first row drawn
 	push hl
 	
@@ -312,12 +308,14 @@ DrawColumns:
 		ld l,a
 		ld c,3
 		call DrawColumn
-	;call IncrementEqualiser
+
 	pop hl			;; Restore the scr address of the first row drawn
 
-	ld b,42	;; No. lines tall /2
+	ld b,BlockHeight/2	;; No. lines tall /2
+
+
+	;; TODO Is this actually faster?
 	_mirrorColumns:
-	push de
 	push bc
 	push hl		;; Preserve the scr address of the first byte of the first line
 			
@@ -331,8 +329,7 @@ DrawColumns:
   			adc   a,h    	; A = A+L+H+carry
     			sub   iyl       ; A = iyl+carry
     			ld    iyh, a    ; D = iyl+carry
-	
-		
+			
 			ld b,6			;; Words to copy
 			di			;; We automatically get an ei when RST #38 triggers, thus screwing us over as that appears to write a byte to the stack 
 			ld (StackBackup),sp
@@ -349,9 +346,8 @@ DrawColumns:
 	pop hl
 	pop bc
 	
-	Call GetNextLine
-	Call GetNextLine
-	pop de
+	Call GetNextAltLine
+
 	djnz _mirrorColumns	
 ret
       
@@ -361,8 +357,6 @@ DrawColumn:
 	;; (IX) = Top of the VU
 	;; C = Width
 	
-	;ld e,(ix)		
-	;sra e			;; Half these values as we are drawring two lines at a time
 	push bc
 		ld a,8 	;; Channel A volume
 		call AYRegRead
@@ -446,22 +440,17 @@ DrawColouredLine:
 	bit 7,b
 	ret nz
 
-	push bc
+	push bc		;; Preserve the width in C
 	push de		;; Preserve the pallet colour for the next row	
-	
-		push hl		;; Preserve HL while we add the X values
-		push bc		;; Preserve the width in C
-			ld (hl),d
+		push hl		;; Preserve HL while we add the X values		
+			ld (hl),d	;; TODO Could self mod this and save another push pop
 			push hl
 			pop de
 			inc de
 			ld b,0
 			ldir			
-		pop bc
 		pop hl		;; Return HL to the start of the row
-		
-			call GetNextLine
-			call GetNextLine
+		call GetNextAltLine
 	pop de
 	pop bc	
 	djnz DrawColouredLine

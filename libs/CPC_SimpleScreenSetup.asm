@@ -74,12 +74,12 @@ GetScreenPos:
 	add hl,bc			; hl = hl + bc, add the x and y values together
 ret
 
-GetNextLine:
+GetNextAltLine:
 	;; Inputs: HL Current screen memory location
 	;; Returns: HL updated to the start of the next line
 	;; Destroys: DE
 	ld a,h				; load the high byte of hl into a
-	add &08				; it's just a fact that each line is + &0800 from the last one
+	add &10				; it's just a fact that each line is + &0800 from the last one
 	ld h,a				; put the value back in h
 
 _screenBankMod_Minus1:
@@ -96,37 +96,33 @@ ret
 
 
 SwitchScreenBuffer:
+	;; DESTROYS HL DE A
 	;; Using the shadow registers as this detroys all of them
 	; Flips all the screen buffer variables and moves the back buffer onto the screen
-	di
-	exx
 	ld a,(ScreenStartAddressFlag)
 	sub CRTC_8000
 	jr nz, _setScreenBase8000
 _setScreenBaseC000:
-	ld de,CRTC_C000 
-	ld (ScreenStartAddressFlag),de
-	ld de,&8000
-	ld (BackBufferAddress),de
+	ld a,&80
+	ld (BackBufferAddress+1),a
+	ld a,CRTC_C000 
+	ld (ScreenStartAddressFlag),a
 	;; Remember this is the test for drawing to 8000, not C000
 	ld hl,&2874		;; Byte code for: Bit 6,JR Z
 	ld (_screenBankMod_Minus1+1),hl
 	jr _doSwitchScreen
 _setScreenBase8000:
-	ld de,CRTC_8000
-	ld (ScreenStartAddressFlag),de
-	ld de,&C000 
-	ld (BackBufferAddress),de 
+	ld a,&C0 
+	ld (BackBufferAddress+1),a
+	ld a,CRTC_8000
+	ld (ScreenStartAddressFlag),a 
 	ld hl,&207C		;; Byte code for: Bit 7,JR NZ
 	ld (_screenBankMod_Minus1+1),hl
 _doSwitchScreen:
 	ld bc,&BC0C 	; CRTC Register to change the start address of the screen
 	out (c),c
 	inc b
-	ld a,(ScreenStartAddressFlag)
 	out (c),a
-	exx
-	ei
 ret
 
 ; This is the screen address table for a standard screen
