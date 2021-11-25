@@ -37,6 +37,8 @@ AxelF_DisarkPointerRegionStart5
 	dw AxelF_Instrument1
 	dw AxelF_Instrument2
 	dw AxelF_Instrument3
+	dw AxelF_Instrument4
+	dw AxelF_Instrument5
 AxelF_DisarkPointerRegionEnd5
 
 AxelF_EmptyInstrument
@@ -46,12 +48,44 @@ AxelF_EmptyInstrument_Loop	db 0	; No Soft no Hard. Volume: 0. Noise? false.
 	db 6	; Loop to silence.
 
 AxelF_Instrument1
-	db 3	; The speed (>0, 0 for 256).
-	db 249	; Soft only. Volume: 15. Volume only.
+	db 1	; The speed (>0, 0 for 256).
+	db 121	; Soft only. Volume: 15.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db -12	; Arpeggio.
 
-	db 241	; Soft only. Volume: 14. Volume only.
+	db 113	; Soft only. Volume: 14.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db -12	; Arpeggio.
 
 	db 233	; Soft only. Volume: 13. Volume only.
+
+	db 225	; Soft only. Volume: 12. Volume only.
+
+	db 217	; Soft only. Volume: 11. Volume only.
+
+	db 209	; Soft only. Volume: 10. Volume only.
+
+	db 201	; Soft only. Volume: 9. Volume only.
+
+	db 193	; Soft only. Volume: 8. Volume only.
+
+	db 185	; Soft only. Volume: 7. Volume only.
+
+AxelF_Instrument1_Loop	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 7	; Loop.
+AxelF_DisarkWordForceReference6
+	dw AxelF_Instrument1_Loop	; Loop here.
+
+AxelF_Instrument2
+	db 1	; The speed (>0, 0 for 256).
+	db 121	; Soft only. Volume: 15.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db -24	; Arpeggio.
+
+	db 105	; Soft only. Volume: 13.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db -24	; Arpeggio.
 
 	db 225	; Soft only. Volume: 12. Volume only.
 
@@ -69,9 +103,213 @@ AxelF_Instrument1
 
 	db 169	; Soft only. Volume: 5. Volume only.
 
+	db 161	; Soft only. Volume: 4. Volume only.
+
+	db 153	; Soft only. Volume: 3. Volume only.
+
+	db 145	; Soft only. Volume: 2. Volume only.
+
+	db 137	; Soft only. Volume: 1. Volume only.
+
 	db 6	; Loop to silence.
 
-AxelF_Instrument2
+AxelF_Instrument3
+	db 1	; The speed (>0, 0 for 256).
+	db 153	; Soft only. Volume: 3. Volume only.
+
+	db 153	; Soft only. Volume: 3. Volume only.
+
+	db 153	; Soft only. Volume: 3. Volume only.
+
+	db 153	; Soft only. Volume: 3. Volume only.
+
+	db 153	; Soft only. Volume: 3. Volume only.
+
+	db 153	; Soft only. Volume: 3. Volume only.
+
+	db 161	; Soft only. Volume: 4. Volume only.
+
+	db 161	; Soft only. Volume: 4. Volume only.
+
+	db 161	; Soft only. Volume: 4. Volume only.
+
+	db 161	; Soft only. Volume: 4. Volume only.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 49	; Soft only. Volume: 6.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 12	; Arpeggio.
+
+	db 65	; Soft only. Volume: 8.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 3	; Arpeggio.
+
+	db 65	; Soft only. Volume: 8.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 3	; Arpeggio.
+
+	db 65	; Soft only. Volume: 8.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 3	; Arpeggio.
+
+	db 65	; Soft only. Volume: 8.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 3	; Arpeggio.
+
+	db 65	; Soft only. Volume: 8.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 3	; Arpeggio.
+
+	db 65	; Soft only. Volume: 8.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 3	; Arpeggio.
+
+	db 65	; Soft only. Volume: 8.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 3	; Arpeggio.
+
+	db 73	; Soft only. Volume: 9.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 15	; Arpeggio.
+
+	db 73	; Soft only. Volume: 9.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 5	; Arpeggio.
+
+	db 81	; Soft only. Volume: 10.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 17	; Arpeggio.
+
+	db 105	; Soft only. Volume: 13.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 8	; Arpeggio.
+
+	db 113	; Soft only. Volume: 14.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db 20	; Arpeggio.
+
+AxelF_Instrument3_Loop	db 249	; Soft only. Volume: 15. Volume only.
+
+	db 249	; Soft only. Volume: 15. Volume only.
+
+	db 249	; Soft only. Volume: 15. Volume only.
+
+	db 7	; Loop.
+AxelF_DisarkWordForceReference7
+	dw AxelF_Instrument3_Loop	; Loop here.
+
+AxelF_Instrument4
+	db 1	; The speed (>0, 0 for 256).
+	db 249	; Soft only. Volume: 15. Volume only.
+
+	db 121	; Soft only. Volume: 15.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db -12	; Arpeggio.
+
+	db 241	; Soft only. Volume: 14. Volume only.
+
+	db 241	; Soft only. Volume: 14. Volume only.
+
+	db 105	; Soft only. Volume: 13.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db -12	; Arpeggio.
+
+	db 233	; Soft only. Volume: 13. Volume only.
+
+	db 225	; Soft only. Volume: 12. Volume only.
+
+	db 225	; Soft only. Volume: 12. Volume only.
+
+	db 217	; Soft only. Volume: 11. Volume only.
+
+	db 217	; Soft only. Volume: 11. Volume only.
+
+	db 209	; Soft only. Volume: 10. Volume only.
+
+	db 209	; Soft only. Volume: 10. Volume only.
+
+	db 201	; Soft only. Volume: 9. Volume only.
+
+	db 201	; Soft only. Volume: 9. Volume only.
+
+	db 193	; Soft only. Volume: 8. Volume only.
+
+	db 193	; Soft only. Volume: 8. Volume only.
+
+	db 185	; Soft only. Volume: 7. Volume only.
+
+	db 185	; Soft only. Volume: 7. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 169	; Soft only. Volume: 5. Volume only.
+
+	db 169	; Soft only. Volume: 5. Volume only.
+
+	db 161	; Soft only. Volume: 4. Volume only.
+
+	db 161	; Soft only. Volume: 4. Volume only.
+
+	db 153	; Soft only. Volume: 3. Volume only.
+
+	db 153	; Soft only. Volume: 3. Volume only.
+
+	db 145	; Soft only. Volume: 2. Volume only.
+
+	db 145	; Soft only. Volume: 2. Volume only.
+
+	db 137	; Soft only. Volume: 1. Volume only.
+
+	db 137	; Soft only. Volume: 1. Volume only.
+
+	db 6	; Loop to silence.
+
+AxelF_Instrument5
 	db 15	; The speed (>0, 0 for 256).
 	db 0	; No Soft no Hard. Volume: 0. Noise? false.
 
@@ -101,40 +339,12 @@ AxelF_Instrument2
 
 	db 6	; Loop to silence.
 
-AxelF_Instrument3
-	db 3	; The speed (>0, 0 for 256).
-	db 121	; Soft only. Volume: 15.
-	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
-	db 12	; Arpeggio.
-
-	db 241	; Soft only. Volume: 14. Volume only.
-
-	db 233	; Soft only. Volume: 13. Volume only.
-
-	db 225	; Soft only. Volume: 12. Volume only.
-
-	db 217	; Soft only. Volume: 11. Volume only.
-
-	db 209	; Soft only. Volume: 10. Volume only.
-
-	db 201	; Soft only. Volume: 9. Volume only.
-
-	db 193	; Soft only. Volume: 8. Volume only.
-
-	db 185	; Soft only. Volume: 7. Volume only.
-
-	db 177	; Soft only. Volume: 6. Volume only.
-
-	db 169	; Soft only. Volume: 5. Volume only.
-
-	db 6	; Loop to silence.
-
 
 ; The indexes of the effect blocks used by this song.
 AxelF_EffectBlockTable
-AxelF_DisarkPointerRegionStart6
+AxelF_DisarkPointerRegionStart8
 	dw AxelF_EffectBlock_P14P176P246	; Index 0
-AxelF_DisarkPointerRegionEnd6
+AxelF_DisarkPointerRegionEnd8
 
 AxelF_EffectBlock_P14P176P246
 	db 14, 176, 246
@@ -179,36 +389,124 @@ AxelF_Subsong0_DisarkWordForceReference4
 
 AxelF_Subsong0_Track0
 	db 171
+	db 4	; New Instrument (4).
+	db 62 + 1 * 64	; Optimized wait for 3 lines.
+
+	db 174
+	db 2	; New Instrument (2).
+	db 62 + 0 * 64	; Optimized wait for 2 lines.
+
+	db 43
+	db 60	; Waits for 1 line.
+
+	db 171
+	db 4	; New Instrument (4).
+	db 176
+	db 2	; New Instrument (2).
+	db 60	; Waits for 1 line.
+
+	db 43
+	db 60	; Waits for 1 line.
+
+	db 41
+	db 60	; Waits for 1 line.
+
+	db 43
+	db 62 + 1 * 64	; Optimized wait for 3 lines.
+
+	db 50
+	db 62 + 0 * 64	; Optimized wait for 2 lines.
+
+	db 171
+	db 4	; New Instrument (4).
+	db 60	; Waits for 1 line.
+
+	db 171
+	db 2	; New Instrument (2).
+	db 51
+	db 60	; Waits for 1 line.
+
+	db 50
+	db 60	; Waits for 1 line.
+
+	db 46
+	db 60	; Waits for 1 line.
+
+	db 171
+	db 4	; New Instrument (4).
+	db 60	; Waits for 1 line.
+
+	db 178
+	db 2	; New Instrument (2).
+	db 60	; Waits for 1 line.
+
+	db 55
+	db 60	; Waits for 1 line.
+
+	db 171
+	db 4	; New Instrument (4).
+	db 169
+	db 2	; New Instrument (2).
+	db 60	; Waits for 1 line.
+
+	db 41
+	db 38
+	db 60	; Waits for 1 line.
+
+	db 45
+	db 60	; Waits for 1 line.
+
+	db 171
+	db 4	; New Instrument (4).
+	db 62 + 2 * 64	; Optimized wait for 4 lines.
+
+	db 172
+	db 5	; New Instrument (5).
+	db 60	; Waits for 1 line.
+
+	db 124	; No note, but effects.
+	db 0	; Index to an effect block.
+	db 61, 127	; Waits for 128 lines.
+
+
+AxelF_Subsong0_Track1
+	db 60	; Waits for 1 line.
+
+	db 128
+	db 0	; New Instrument (0).
+	db 61, 58	; Waits for 59 lines.
+
+	db 172
 	db 3	; New Instrument (3).
+	db 61, 127	; Waits for 128 lines.
+
+
+AxelF_Subsong0_Track2
+	db 171
+	db 4	; New Instrument (4).
 	db 62 + 1 * 64	; Optimized wait for 3 lines.
 
 	db 174
 	db 1	; New Instrument (1).
 	db 62 + 0 * 64	; Optimized wait for 2 lines.
 
-	db 171
-	db 3	; New Instrument (3).
+	db 43
 	db 60	; Waits for 1 line.
 
-	db 171
-	db 1	; New Instrument (1).
+	db 43
 	db 48
 	db 60	; Waits for 1 line.
 
-	db 171
-	db 3	; New Instrument (3).
+	db 43
 	db 60	; Waits for 1 line.
 
-	db 169
-	db 1	; New Instrument (1).
+	db 41
 	db 60	; Waits for 1 line.
 
-	db 171
-	db 3	; New Instrument (3).
+	db 43
 	db 62 + 1 * 64	; Optimized wait for 3 lines.
 
-	db 178
-	db 1	; New Instrument (1).
+	db 50
 	db 62 + 0 * 64	; Optimized wait for 2 lines.
 
 	db 43
@@ -221,10 +519,12 @@ AxelF_Subsong0_Track0
 	db 50
 	db 60	; Waits for 1 line.
 
-	db 46
+	db 174
+	db 2	; New Instrument (2).
 	db 60	; Waits for 1 line.
 
-	db 43
+	db 171
+	db 1	; New Instrument (1).
 	db 60	; Waits for 1 line.
 
 	db 50
@@ -245,26 +545,6 @@ AxelF_Subsong0_Track0
 	db 60	; Waits for 1 line.
 
 	db 43
-	db 61, 5	; Waits for 6 lines.
-
-	db 124	; No note, but effects.
-	db 0	; Index to an effect block.
-	db 61, 127	; Waits for 128 lines.
-
-
-AxelF_Subsong0_Track1
-	db 60	; Waits for 1 line.
-
-	db 128
-	db 0	; New Instrument (0).
-	db 61, 48	; Waits for 49 lines.
-
-	db 172
-	db 2	; New Instrument (2).
-	db 61, 127	; Waits for 128 lines.
-
-
-AxelF_Subsong0_Track2
 	db 61, 127	; Waits for 128 lines.
 
 
@@ -274,6 +554,28 @@ AxelF_Subsong0_SpeedTrack0
 
 ; The event tracks
 AxelF_Subsong0_EventTrack0
-	db 255	; Wait for 128 lines.
+	db 2	; Value: 1.
+	db 5	; Wait for 3 lines.
+	db 4	; Value: 2.
+	db 3	; Wait for 2 lines.
+	db 6	; Value: 3.
+	db 1	; Wait for 1 lines.
+	db 8	; Value: 4.
+	db 10	; Value: 5.
+	db 1	; Wait for 1 lines.
+	db 12	; Value: 6.
+	db 1	; Wait for 1 lines.
+	db 14	; Value: 7.
+	db 1	; Wait for 1 lines.
+	db 16	; Value: 8.
+	db 5	; Wait for 3 lines.
+	db 18	; Value: 9.
+	db 3	; Wait for 2 lines.
+	db 20	; Value: 10.
+	db 1	; Wait for 1 lines.
+	db 22	; Value: 11.
+	db 1	; Wait for 1 lines.
+	db 24	; Value: 12.
+	db 199	; Wait for 100 lines.
 
 AxelF_Subsong0_DisarkByteRegionEnd0

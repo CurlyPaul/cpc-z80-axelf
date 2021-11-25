@@ -4,22 +4,41 @@
     ld b,b
     ld c,64
     ld c,64
-    ld b,h
+    rst 1
     ld b,b
-    ld c,c
+    call nc,6720
     ld b,b
-    ld d,64
-    add hl,de
+    dec e
     ld b,b
-    ld h,64
-    dec (hl)
+    cpl 
+    ld b,b
+    ld b,e
+    ld b,b
+    sbc a,h
+    ld b,b
+    ret nz
     ld b,b
     nop
     nop
-    ld b,3
-    ld sp,hl
-    pop af
-    jp (hl)
+    ld b,1
+    ld a,c
+    ld b,b
+    call p,16497
+    call p,57833
+    exx
+    pop de
+    ret 
+    pop bc
+    cp c
+    or c
+    rlca 
+    dec hl
+    ld b,b
+    ld bc,16505
+    ret pe
+    ld l,c
+    ld b,b
+    ret pe
     pop hl
     exx
     pop de
@@ -28,6 +47,102 @@
     cp c
     or c
     xor c
+    and c
+    sbc a,c
+    sub c
+    adc a,c
+    ld b,1
+    sbc a,c
+    sbc a,c
+    sbc a,c
+    sbc a,c
+    sbc a,c
+    sbc a,c
+    and c
+    and c
+    and c
+    and c
+    ld sp,3136
+    ld sp,3136
+    ld sp,3136
+    ld sp,3136
+    ld sp,3136
+    ld sp,3136
+    ld sp,3136
+    ld sp,3136
+    ld sp,3136
+    ld sp,3136
+    ld sp,3136
+    ld sp,3136
+    ld b,c
+    ld b,b
+    inc bc
+    ld b,c
+    ld b,b
+    inc bc
+    ld b,c
+    ld b,b
+    inc bc
+    ld b,c
+    ld b,b
+    inc bc
+    ld b,c
+    ld b,b
+    inc bc
+    ld b,c
+    ld b,b
+    inc bc
+    ld b,c
+    ld b,b
+    inc bc
+    ld c,c
+    ld b,b
+    rrca 
+    ld c,c
+    ld b,b
+    dec b
+    ld d,c
+    ld b,b
+    ld de,16489
+    ex af,af'
+    ld (hl),c
+    ld b,b
+    inc d
+    ld sp,hl
+    ld sp,hl
+    ld sp,hl
+    rlca 
+    sub (hl)
+    ld b,b
+    ld bc,31225
+    ld b,b
+    call p,61937
+    ld l,c
+    ld b,b
+    call p,57833
+    pop hl
+    exx
+    exx
+    pop de
+    pop de
+    ret 
+    ret 
+    pop bc
+    pop bc
+    cp c
+    cp c
+    or c
+    or c
+    xor c
+    xor c
+    and c
+    and c
+    sbc a,c
+    sbc a,c
+    sub c
+    sub c
+    adc a,c
+    adc a,c
     ld b,15
     nop
     sub c
@@ -42,21 +157,7 @@
     jp (hl)
     pop af
     pop af
-    ld b,3
-    ld a,c
-    ld b,b
-    inc c
-    pop af
-    jp (hl)
-    pop hl
-    exx
-    pop de
-    ret 
-    pop bc
-    cp c
-    or c
-    xor c
-    ld b,70
+    ld b,209
     ld b,b
     ld c,176
     or 2
@@ -64,53 +165,112 @@
     ld bc,PLY_AKG_OPCODE_ADD_HL_BC_MSB
     add hl,bc
     ld a,(bc)
+    rst 5
+    ld b,b
+    dec hl
+    ld b,c
+    inc (hl)
+    ld b,c
+    rst 4
+    ld b,b
+    nop
+    nop
+    in a,(64)
+    ld b,b
+    nop
+    nop
+    nop
+    ld h,e
+    ld b,c
     ld h,h
-    ld b,b
-    sbc a,e
-    ld b,b
-    and h
-    ld b,b
-    ld e,h
-    ld b,b
-    nop
-    nop
-    ld d,b
-    ld b,b
-    ld b,b
-    nop
-    nop
-    nop
-    and (hl)
-    ld b,b
-    and a
-    ld b,b
+    ld b,c
     xor e
-    inc bc
+    inc b
     ld a,(hl)
     xor (hl)
-    ld bc,43838
-    inc bc
+    ld (bc),a
+    ld a,43
     inc a
     xor e
-    ld bc,15408
-    xor e
-    inc bc
-    inc a
-    xor c
-    ld bc,43836
-    inc bc
-    ld a,(hl)
-    or d
-    ld bc,11070
+    inc b
+    or b
+    ld (bc),a
     inc a
     dec hl
+    inc a
+    add hl,hl
+    inc a
+    dec hl
+    ld a,(hl)
+    ld (43838),a
+    inc b
+    inc a
+    xor e
+    ld (bc),a
     inc sp
     inc a
     ld (11836),a
     inc a
+    xor e
+    inc b
+    inc a
+    or d
+    ld (bc),a
+    inc a
+    scf
+    inc a
+    xor e
+    inc b
+    xor c
+    ld (bc),a
+    inc a
+    add hl,hl
+    ld h,60
+    dec l
+    inc a
+    xor e
+    inc b
+    cp (hl)
+    xor h
+    dec b
+    inc a
+    ld a,h
+    nop
+    dec a
+    ld a,a
+    inc a
+    add a,b
+    nop
+    dec a
+    ld a,(940)
+    dec a
+    ld a,a
+    xor e
+    inc b
+    ld a,(hl)
+    xor (hl)
+    ld bc,11070
+    inc a
+    dec hl
+    jr nc,$+62
     dec hl
     inc a
-    ld (14140),a
+    add hl,hl
+    inc a
+    dec hl
+    ld a,(hl)
+    ld (11070),a
+    inc a
+    dec hl
+    inc sp
+    inc a
+    ld (44604),a
+    ld (bc),a
+    inc a
+    xor e
+    ld bc,12860
+    inc a
+    scf
     inc a
     dec hl
     add hl,hl
@@ -121,23 +281,23 @@
     inc a
     dec hl
     dec a
-    dec b
-    ld a,h
-    nop
-    dec a
     ld a,a
-    inc a
-    add a,b
-    nop
-    dec a
-    jr nc,$-82
+    rst 7
     ld (bc),a
-    dec a
-    ld a,a
-    dec a
-    ld a,a
-    rst 7
-    rst 7
+    dec b
+    inc b
+    inc bc
+    ld b,1
+    ex af,af'
+    ld a,(bc)
+    ld bc,268
+    ld c,1
+    djnz $+7
+    ld (de),a
+    inc bc
+    inc d
+    ld bc,278
+    jr $-55
     jp PLY_AKG_INIT
     jp PLY_AKG_PLAY
     jp PLY_AKG_INITTABLEORA_END
@@ -200,24 +360,26 @@
     ld (de),a
     djnz $-6
     ret 
-    call po,58690
-    ld b,d
-    ld c,67
-    rrca 
+    pop hl
     ld b,e
-    jr c,$+69
-    add hl,sp
-    ld b,e
-    ld d,d
-    ld b,c
-    ld c,h
-    ld b,c
-    and 66
-    djnz $+69
-    ld a,(60739)
-    ld (hl),e
-    sub h
+    jp po,2883
     ld b,h
+    inc c
+    ld b,h
+    dec (hl)
+    ld b,h
+    ld (hl),68
+    add hl,hl
+    ld b,d
+    inc hl
+    ld b,d
+    ex (sp),hl
+    ld b,e
+    dec c
+    ld b,h
+    scf
+    ld b,h
+    ld (PLY_AKG_SAVESP+1),sp
     xor a
     ld l,a
     ld h,a
@@ -226,12 +388,14 @@
     ld a,63
     jp PLY_AKG_SENDPSGREGISTERS
     ld (PLY_AKG_SAVESP+1),sp
+    xor a
+    ld (PLY_AKG_EVENT),a
     ld a,1
     dec a
     jp nz,PLY_AKG_SETSPEEDBEFOREPLAYSTREAMS
     ld a,1
     dec a
-    jr nz,$+43
+    jr nz,$+52
     ld sp,PLY_AKG_OPCODE_ADD_HL_BC_MSB
     pop hl
     ld a,l
@@ -250,16 +414,36 @@
     ld sp,hl
     pop hl
     ld c,l
+    pop hl
+    pop hl
+    pop hl
+    ld (PLY_AKG_EVENTTRACK_PTTRACK+1),hl
     xor a
     ld (PLY_AKG_READLINE+1),a
+    ld (PLY_AKG_EVENTTRACK_END+1),a
     ld (PLY_AKG_CHANNEL1_READCELLEND+1),a
     ld (PLY_AKG_CHANNEL2_READCELLEND+1),a
     ld a,c
     ld (PLY_AKG_PATTERNDECREASINGHEIGHT+1),a
     ld a,0
     sub 1
-    jr c,$+8
+    jr nc,$+22
+    ld hl,PLY_AKG_OPCODE_ADD_HL_BC_MSB
+    ld a,(hl)
+    inc hl
+    srl a
+    jr c,$+10
+    jr nz,$+4
+    ld a,(hl)
+    inc hl
+    ld (PLY_AKG_EVENT),a
+    xor a
+    ld (PLY_AKG_EVENTTRACK_PTTRACK+1),hl
     ld (PLY_AKG_READLINE+1),a
+    ld a,0
+    sub 1
+    jr c,$+8
+    ld (PLY_AKG_EVENTTRACK_END+1),a
     jp PLY_AKG_CHANNEL1_READCELLEND
     ld hl,PLY_AKG_OPCODE_ADD_HL_BC_MSB
     ld c,(hl)
@@ -282,10 +466,10 @@
     rlca 
     and 3
     inc a
-    ld (PLY_AKG_READLINE+1),a
+    ld (PLY_AKG_EVENTTRACK_END+1),a
     jr $+63
     ld a,(hl)
-    ld (PLY_AKG_READLINE+1),a
+    ld (PLY_AKG_EVENTTRACK_END+1),a
     inc hl
     jr $+56
     ld de,PLY_AKG_OPCODE_ADD_HL_BC_MSB
@@ -699,7 +883,7 @@
     exx
     ld sp,PLY_AKG_OPCODE_ADD_HL_BC_MSB
     ret 
-    ld (PLY_AKG_READLINE+1),a
+    ld (PLY_AKG_EVENTTRACK_END+1),a
     bit 6,c
     jp z,PLY_AKG_CHANNEL1_BEFOREEND_STORECELLPOINTER
     ld iy,PLY_AKG_CHANNEL1_SOUNDSTREAM_RELATIVEMODIFIERADDRESS
@@ -787,7 +971,7 @@
     ld b,(hl)
     ld c,b
     inc hl
-    call PLY_AKG_H_OR_ENDWITHLOOP
+    call PLY_AKG_S_OR_H_CHECKIFSIMPLEFIRST_CALCULATEPERIOD
     ret 
     ld hl,PLY_AKG_OPCODE_ADD_HL_BC_MSB
     inc hl
@@ -800,6 +984,11 @@
     jr c,$+6
     rra 
     jp nc,PLY_AKG_SOFT
+    ld a,(hl)
+    inc hl
+    ld h,(hl)
+    ld l,a
+    jp PLY_AKG_READINSTRUMENTCELL
     jr nc,$+22
     exx
     ex de,hl
@@ -852,10 +1041,10 @@
     nop
     nop
     nop
-    and h
-    ld b,l
-    or l
-    ld b,l
+    xor b
+    ld b,(hl)
+    cp c
+    ld b,(hl)
     nop
     nop
     nop
@@ -882,6 +1071,7 @@
     jp PLY_AKG_CHANNEL_RE_EFFECTRETURN
     ld (iy-35),183
     jp PLY_AKG_CHANNEL_RE_EFFECTRETURN
+    nop
     xor 14
     jr $+16
     ld c,l
@@ -1094,79 +1284,82 @@
     nop
 PLY_AKG_BITFORNOISE equ 5
 PLY_AKG_BITFORSOUND equ 2
-PLY_AKG_CHANNEL1_BEFOREEND_STORECELLPOINTER equ 16881
-PLY_AKG_CHANNEL1_GENERATEDCURRENTINVERTEDVOLUME equ 17266
-PLY_AKG_CHANNEL1_INSTRUMENTSPEED equ 17275
-PLY_AKG_CHANNEL1_INSTRUMENTSTEP equ 17260
-PLY_AKG_CHANNEL1_INVERTEDVOLUMEINTEGERANDDECIMAL equ 17123
-PLY_AKG_CHANNEL1_MAYBEEFFECTS equ 17559
-PLY_AKG_CHANNEL1_NOTE equ 16836
-PLY_AKG_CHANNEL1_PLAYINSTRUMENT_RELATIVEMODIFIERADDRESS equ 17253
-PLY_AKG_CHANNEL1_PTINSTRUMENT equ 17263
-PLY_AKG_CHANNEL1_READCELLEND equ 16884
-PLY_AKG_CHANNEL1_READEFFECTS equ 17567
-PLY_AKG_CHANNEL1_READEFFECTSEND equ 17580
-PLY_AKG_CHANNEL1_READTRACK equ 16782
-PLY_AKG_CHANNEL1_SAMEINSTRUMENT equ 16827
-PLY_AKG_CHANNEL1_SOUNDSTREAM_RELATIVEMODIFIERADDRESS equ 17161
-PLY_AKG_CHANNEL1_TRACKNOTE equ 17256
-PLY_AKG_CHANNEL2_BEFOREEND_STORECELLPOINTER equ 16998
-PLY_AKG_CHANNEL2_GENERATEDCURRENTINVERTEDVOLUME equ 17309
-PLY_AKG_CHANNEL2_INSTRUMENTSPEED equ 17318
-PLY_AKG_CHANNEL2_INSTRUMENTSTEP equ 17303
-PLY_AKG_CHANNEL2_INVERTEDVOLUMEINTEGERANDDECIMAL equ 17165
-PLY_AKG_CHANNEL2_PLAYINSTRUMENT_RELATIVEMODIFIERADDRESS equ 17296
-PLY_AKG_CHANNEL2_PTINSTRUMENT equ 17306
-PLY_AKG_CHANNEL2_READCELLEND equ 17001
-PLY_AKG_CHANNEL2_READEFFECTS equ 17588
-PLY_AKG_CHANNEL2_READEFFECTSEND equ 17601
-PLY_AKG_CHANNEL2_READTRACK equ 16896
-PLY_AKG_CHANNEL2_SAMEINSTRUMENT equ 16941
-PLY_AKG_CHANNEL2_SOUNDSTREAM_RELATIVEMODIFIERADDRESS equ 17203
-PLY_AKG_CHANNEL2_TRACKNOTE equ 17299
-PLY_AKG_CHANNEL3_BEFOREEND_STORECELLPOINTER equ 17115
-PLY_AKG_CHANNEL3_GENERATEDCURRENTINVERTEDVOLUME equ 17352
-PLY_AKG_CHANNEL3_INSTRUMENTSPEED equ 17361
-PLY_AKG_CHANNEL3_INSTRUMENTSTEP equ 17346
-PLY_AKG_CHANNEL3_INVERTEDVOLUMEINTEGERANDDECIMAL equ 17207
-PLY_AKG_CHANNEL3_PLAYINSTRUMENT_RELATIVEMODIFIERADDRESS equ 17339
-PLY_AKG_CHANNEL3_PTINSTRUMENT equ 17349
-PLY_AKG_CHANNEL3_READCELLEND equ 17118
-PLY_AKG_CHANNEL3_READEFFECTS equ 17609
-PLY_AKG_CHANNEL3_READTRACK equ 17013
-PLY_AKG_CHANNEL3_SAMEINSTRUMENT equ 17058
-PLY_AKG_CHANNEL3_SOUNDSTREAM_RELATIVEMODIFIERADDRESS equ 17245
-PLY_AKG_CHANNEL3_TRACKNOTE equ 17342
-PLY_AKG_CHANNEL_READEFFECTS_EFFECTBLOCKS1 equ 17635
-PLY_AKG_CHANNEL_READEFFECTS_EFFECTBLOCKS2 equ 17677
-PLY_AKG_CHANNEL_READEFFECTS_ENDJUMP equ 17665
-PLY_AKG_CHANNEL_RE_EFFECTRETURN equ 17658
-PLY_AKG_EFFECTTABLE equ 17794
-PLY_AKG_ENDWITHOUTLOOP equ 17726
-PLY_AKG_H_OR_ENDWITHLOOP equ 17744
-PLY_AKG_INIT equ 16561
-PLY_AKG_INITTABLE0 equ 16671
-PLY_AKG_INITTABLE0_END equ 16683
-PLY_AKG_INITTABLE1_END equ 16687
-PLY_AKG_INITTABLEORA_END equ 16693
-PLY_AKG_INIT_READWORDSANDFILL equ 16668
-PLY_AKG_INSTRUMENTSTABLE equ 16852
+PLY_AKG_CHANNEL1_BEFOREEND_STORECELLPOINTER equ 17134
+PLY_AKG_CHANNEL1_GENERATEDCURRENTINVERTEDVOLUME equ 17519
+PLY_AKG_CHANNEL1_INSTRUMENTSPEED equ 17528
+PLY_AKG_CHANNEL1_INSTRUMENTSTEP equ 17513
+PLY_AKG_CHANNEL1_INVERTEDVOLUMEINTEGERANDDECIMAL equ 17376
+PLY_AKG_CHANNEL1_MAYBEEFFECTS equ 17812
+PLY_AKG_CHANNEL1_NOTE equ 17089
+PLY_AKG_CHANNEL1_PLAYINSTRUMENT_RELATIVEMODIFIERADDRESS equ 17506
+PLY_AKG_CHANNEL1_PTINSTRUMENT equ 17516
+PLY_AKG_CHANNEL1_READCELLEND equ 17137
+PLY_AKG_CHANNEL1_READEFFECTS equ 17820
+PLY_AKG_CHANNEL1_READEFFECTSEND equ 17833
+PLY_AKG_CHANNEL1_READTRACK equ 17035
+PLY_AKG_CHANNEL1_SAMEINSTRUMENT equ 17080
+PLY_AKG_CHANNEL1_SOUNDSTREAM_RELATIVEMODIFIERADDRESS equ 17414
+PLY_AKG_CHANNEL1_TRACKNOTE equ 17509
+PLY_AKG_CHANNEL2_BEFOREEND_STORECELLPOINTER equ 17251
+PLY_AKG_CHANNEL2_GENERATEDCURRENTINVERTEDVOLUME equ 17562
+PLY_AKG_CHANNEL2_INSTRUMENTSPEED equ 17571
+PLY_AKG_CHANNEL2_INSTRUMENTSTEP equ 17556
+PLY_AKG_CHANNEL2_INVERTEDVOLUMEINTEGERANDDECIMAL equ 17418
+PLY_AKG_CHANNEL2_PLAYINSTRUMENT_RELATIVEMODIFIERADDRESS equ 17549
+PLY_AKG_CHANNEL2_PTINSTRUMENT equ 17559
+PLY_AKG_CHANNEL2_READCELLEND equ 17254
+PLY_AKG_CHANNEL2_READEFFECTS equ 17841
+PLY_AKG_CHANNEL2_READEFFECTSEND equ 17854
+PLY_AKG_CHANNEL2_READTRACK equ 17149
+PLY_AKG_CHANNEL2_SAMEINSTRUMENT equ 17194
+PLY_AKG_CHANNEL2_SOUNDSTREAM_RELATIVEMODIFIERADDRESS equ 17456
+PLY_AKG_CHANNEL2_TRACKNOTE equ 17552
+PLY_AKG_CHANNEL3_BEFOREEND_STORECELLPOINTER equ 17368
+PLY_AKG_CHANNEL3_GENERATEDCURRENTINVERTEDVOLUME equ 17605
+PLY_AKG_CHANNEL3_INSTRUMENTSPEED equ 17614
+PLY_AKG_CHANNEL3_INSTRUMENTSTEP equ 17599
+PLY_AKG_CHANNEL3_INVERTEDVOLUMEINTEGERANDDECIMAL equ 17460
+PLY_AKG_CHANNEL3_PLAYINSTRUMENT_RELATIVEMODIFIERADDRESS equ 17592
+PLY_AKG_CHANNEL3_PTINSTRUMENT equ 17602
+PLY_AKG_CHANNEL3_READCELLEND equ 17371
+PLY_AKG_CHANNEL3_READEFFECTS equ 17862
+PLY_AKG_CHANNEL3_READTRACK equ 17266
+PLY_AKG_CHANNEL3_SAMEINSTRUMENT equ 17311
+PLY_AKG_CHANNEL3_SOUNDSTREAM_RELATIVEMODIFIERADDRESS equ 17498
+PLY_AKG_CHANNEL3_TRACKNOTE equ 17595
+PLY_AKG_CHANNEL_READEFFECTS_EFFECTBLOCKS1 equ 17888
+PLY_AKG_CHANNEL_READEFFECTS_EFFECTBLOCKS2 equ 17930
+PLY_AKG_CHANNEL_READEFFECTS_ENDJUMP equ 17918
+PLY_AKG_CHANNEL_RE_EFFECTRETURN equ 17911
+PLY_AKG_EFFECTTABLE equ 18054
+PLY_AKG_ENDWITHOUTLOOP equ 17979
+PLY_AKG_EVENT equ 18112
+PLY_AKG_EVENTTRACK_END equ 17023
+PLY_AKG_EVENTTRACK_PTTRACK equ 17000
+PLY_AKG_INIT equ 16772
+PLY_AKG_INITTABLE0 equ 16882
+PLY_AKG_INITTABLE0_END equ 16894
+PLY_AKG_INITTABLE1_END equ 16898
+PLY_AKG_INITTABLEORA_END equ 16904
+PLY_AKG_INIT_READWORDSANDFILL equ 16879
+PLY_AKG_INSTRUMENTSTABLE equ 17105
 PLY_AKG_OPCODE_ADD_HL_BC_MSB equ 0
-PLY_AKG_PATTERNDECREASINGHEIGHT equ 16721
-PLY_AKG_PERIODTABLE equ 17852
-PLY_AKG_PLAY equ 16711
-PLY_AKG_PSGREG01_INSTR equ 17392
-PLY_AKG_PSGREG10 equ 17524
-PLY_AKG_PSGREG23_INSTR equ 17423
-PLY_AKG_PSGREG45_INSTR equ 17456
-PLY_AKG_PSGREG8 equ 17490
-PLY_AKG_PSGREG9 equ 17523
-PLY_AKG_READINSTRUMENTCELL equ 17683
-PLY_AKG_READLINE equ 16770
-PLY_AKG_READLINKER equ 16726
-PLY_AKG_SAVESP equ 17555
-PLY_AKG_SENDPSGREGISTERS equ 17381
-PLY_AKG_SETSPEEDBEFOREPLAYSTREAMS equ 17120
-PLY_AKG_SOFT equ 17704
-PLY_AKG_S_OR_H_OR_SAH_OR_ENDWITHLOOP equ 17737
-PLY_AKG_TICKDECREASINGCOUNTER equ 16715
+PLY_AKG_PATTERNDECREASINGHEIGHT equ 16936
+PLY_AKG_PERIODTABLE equ 18113
+PLY_AKG_PLAY equ 16922
+PLY_AKG_PSGREG01_INSTR equ 17645
+PLY_AKG_PSGREG10 equ 17777
+PLY_AKG_PSGREG23_INSTR equ 17676
+PLY_AKG_PSGREG45_INSTR equ 17709
+PLY_AKG_PSGREG8 equ 17743
+PLY_AKG_PSGREG9 equ 17776
+PLY_AKG_READINSTRUMENTCELL equ 17936
+PLY_AKG_READLINE equ 16994
+PLY_AKG_READLINKER equ 16941
+PLY_AKG_SAVESP equ 17808
+PLY_AKG_SENDPSGREGISTERS equ 17634
+PLY_AKG_SETSPEEDBEFOREPLAYSTREAMS equ 17373
+PLY_AKG_SOFT equ 17957
+PLY_AKG_S_OR_H_CHECKIFSIMPLEFIRST_CALCULATEPERIOD equ 18004
+PLY_AKG_S_OR_H_OR_SAH_OR_ENDWITHLOOP equ 17990
+PLY_AKG_TICKDECREASINGCOUNTER equ 16930

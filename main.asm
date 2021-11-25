@@ -7,8 +7,6 @@
 
         org &1000
 ;write direct 'axelf.bin',&1000
-BlockWidth equ 20
-BlockHeight equ 84
 
 run Start
 Start:
@@ -40,9 +38,7 @@ SyncForScreenSetUp:   ld b,&f5
 	call ClearScreen
 
 	call Palette_Init
-
-	ld ix,Equaliser
-	ld iy,ScreenDrawTable
+	ld ix,ScreenDrawTable
 
 Sync:   ld b,&f5
         in a,(c)
@@ -56,35 +52,33 @@ Sync:   ld b,&f5
 	;; when the ticker reaches zero
 	;; increment a pointer to 
 
-	ld a,(&414c)	;; PLY_AKG_TICKDECREASINGCOUNTER but defined in a way winape doesn't get	
+	ld a,(PLY_AKG_TICKDECREASINGCOUNTER)	;; PLY_AKG_TICKDECREASINGCOUNTER but defined in a way winape doesn't get	
 	cp a,1
 	jr nz,@doDrawing
 		;; decrement our slow ticker
 		ld a,(ScreenIndexCountdown)
 		dec a
 		jr nz,@saveIndexAndDoDrawing
-			inc iy
-			inc iy
-			inc iy
-			ld a,(iy)
+			inc ix
+			inc ix
+			inc ix
+			ld a,(ix)
 			cp a,0
 			jr nz,@resetCountdownAndChangeScreen
-				ld iy,ScreenDrawTable	;; Reset the screen script to the start
-				ld a,(iy)
+				ld ix,ScreenDrawTable	;; Reset the screen script to the start
+				ld a,(ix)
 			@resetCountdownAndChangeScreen
-			ld h,(iy+1)
+			ld h,(ix+1)
 			ld l,a
 			ld (JumpDrawRountine-2),hl
 
-			ld a,(iy+2)
+			ld a,(ix+2)
 			
 	@saveIndexAndDoDrawing
 		ld (ScreenIndexCountdown),a
 	@doDrawing:
-	push iy
-		call DrawSingleSet:JumpDrawRountine	
+		call DrawDualSet:JumpDrawRountine	
  	      	call PLY_AKG_Play
-	pop iy
 jr Sync
 
 ScreenIndexCountdown	db 16	;; TODO Should use some code to init this
@@ -261,6 +255,44 @@ BlockCopy
 	djnz @copyNextLine
 ret
 
+AYRegRead:
+	;; INPUT
+	;; A = AY Reg to read
+	;; OUTPUT
+	;; A = Reg Value
+	;; DESTROYS BC
+		push bc
+			ld b,&f4
+			ld c,a
+			out (c),c	;#f4 Regnum
+
+			ld bc,&F6C0	;Select REG
+			out (c),c	
+
+			ld bc,&f600	;Inactive
+			out (c),c
+
+			;; PPI port A set to input, PPI port B set to input,
+			;; PPI port C (lower) set to output, PPI port C (upper) set to output
+			ld bc,&f700+%10010010
+			out (c),c
+
+			ld bc,&F640	;Read VALUE
+			out (c),c	
+		pop bc
+
+		ld b,&F4		;#f4 value
+		in a,(c)
+
+		;; PPI port A set to output, PPI port B set to input,
+		;; PPI port C (lower) set to output, PPI port C (upper) set to output
+		ld bc,&f700+%10000010
+		out (c),c
+
+		ld bc,&f600		;inactive
+		out (c),c
+ret
+
 DrawColumns:
 	;; INPUTS
 	;; HL = XY of the bounding box
@@ -269,7 +301,7 @@ DrawColumns:
 	push hl
 		ld c,6			;; bytes wide
 		call DrawColumn
-		call IncrementEqualiser
+		;call IncrementEqualiser
 	pop hl			;; Restore the scr address of the first row drawn
 	push hl
 	
@@ -280,7 +312,7 @@ DrawColumns:
 		ld l,a
 		ld c,3
 		call DrawColumn
-	call IncrementEqualiser
+	;call IncrementEqualiser
 	pop hl			;; Restore the scr address of the first row drawn
 
 	ld b,42	;; No. lines tall /2
@@ -322,16 +354,6 @@ DrawColumns:
 	pop de
 	djnz _mirrorColumns	
 ret
-
-IncrementEqualiser:
-	inc ix
-	ld a,(ix)
-	cp 0 
-	jr z,resetEqualiser
-		ret
-	resetEqualiser:
-		ld ix,Equaliser
-ret 
       
 DrawColumn:
 	;; INPUTS
@@ -339,14 +361,21 @@ DrawColumn:
 	;; (IX) = Top of the VU
 	;; C = Width
 	
-	ld e,(ix)		
-	sra e			;; Half these values as we are drawring two lines at a time
+	;ld e,(ix)		
+	;sra e			;; Half these values as we are drawring two lines at a time
+	push bc
+		ld a,8 	;; Channel A volume
+		call AYRegRead
+		add a	;; Value is in the range 0-15 and our vu is 75 lines tall, so multiply by 3
+		add a
+		ld e,a
+		sra e	;; And then divide by two as I'm only drawing alt. lines
+	pop bc
 
 	push bc
 		ld a,BlockHeight/2
 		sub e		;; A = LineCount - NumberOfColouredLines = number of lines to blankout
 		ld b,a
-		
 		ld d,&ff
 		call DrawColouredLine
 	pop bc
@@ -356,7 +385,7 @@ DrawColumn:
 
 _drawRedLines:
 	ld a,b
-	sub 35		;; Red threshold/2
+	sub 25		;; Red threshold/2
 			;; A now holds the number of lines to draw in red
 	jp m,_drawOrangeLines
 	jr z,_drawOrangeLines
@@ -373,7 +402,7 @@ _drawRedLines:
 	
 _drawOrangeLines:
 		ld a,b
-		sub 30		;; Orange threshold/2
+		sub 18		;; Orange threshold/2
 				;; A now holds the number of lines to draw in orange
 	jp m,_drawYellowLines
 	jr z,_drawYellowLines 
@@ -389,7 +418,7 @@ _drawOrangeLines:
 
 _drawYellowLines:
 		ld a,b
-		sub 28		;; Yellow threshold/2
+		sub 15		;; Yellow threshold/2
 	jp m,_drawGreenLines
 	jr z,_drawGreenLines 
 		ld e,a		
@@ -414,6 +443,9 @@ DrawColouredLine:
 	;; B = Number of lines to draw
 	;; D = Byte to draw
 	;; C = width
+	bit 7,b
+	ret nz
+
 	push bc
 	push de		;; Preserve the pallet colour for the next row	
 	
@@ -435,15 +467,12 @@ DrawColouredLine:
 	djnz DrawColouredLine
 ret
 
-align 2
-Equaliser:	;; No need to be even
-	db 10,30,44,50,10,20,30,25,40,50,60,40,70
-	db 75,80,10,20,10,55,30,40,40,40,0
-
 ScreenStartAddressFlag:	db 48  
 ScreenOverflowAddress: 	dw &BFFF
 BackBufferAddress: 	dw &8000 
 StackBackUp		dw 0
+BlockWidth equ 20
+BlockHeight equ 76
 
 read "./libs/CPC_V2_SimplePalette.asm"
 read "./libs/CPC_SimpleScreenSetUp.asm"

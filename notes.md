@@ -53,6 +53,11 @@ if the song is 11 seconds long
 
 If the AKG ticker decreases from 9 to 1 each time play is called. 
 
-Count how many times the ticker hits one per loop of the audio
+Count how many times the ticker hits one per loop of the audio: ~ &43 full cycles
 
 from that I can work out the length of a bar, and at which points I need to switch the screen
+
+There are 4 bars
+
+
+
