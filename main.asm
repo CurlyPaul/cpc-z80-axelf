@@ -80,7 +80,7 @@ Sync:   ld b,&f5
 		ld (ScreenIndexCountdown),a
 	@doDrawing:
 		call PLY_AKG_Play
-		call DrawDualSet:JumpDrawRountine	
+		call DrawQuadSet:JumpDrawRountine	
 
 jr Sync
 
@@ -105,18 +105,30 @@ ScreenDrawTable:
 	db 1
 	dw 0	
 
+;; TODO these all need to be padded out so that they are the same length
 DrawQuadSet:
-	call DrawDualSet
+	call DrawQuadSetPhaseOne:@quadNextDraw
+ret		
 
+DrawQuadSetPhaseOne:
+	call DrawDualSetPhaseOne		
+	ld hl,DrawQuadSetPhaseTwo
+	ld (@quadNextDraw-2),hl
+	jp Sync
+
+DrawQuadSetPhaseTwo:
+	call DrawDualSetPhaseTwo
+	ld hl,DrawQuadSetPhaseThree
+	ld (@quadNextDraw-2),hl
+	jp Sync
+
+DrawQuadSetPhaseThree:
+	;; Now copy what we just drew into the top half of the screen
 	ld b,10			;; X
 	ld c,110		;; Y
 	call GetScreenPos	;; HL == start point
 
 	push hl
-		;ld de,10	;; screen width - 10 pixel border
-		;add hl,de
-		;inc hl
-
 		ld b,46+BlockWidth+1	;; X
 		ld c,10		;; Y
 		call GetScreenPos	;; <-- this is wasteful as the line number won't change
@@ -128,7 +140,10 @@ DrawQuadSet:
 	ld b, BlockHeight/2
 	ld c, 29
 	call BlockCopy
-ret
+
+	ld hl,DrawQuadSetPhaseOne
+	ld (@quadNextDraw-2),hl
+	jp SyncAndFlipBuffer
 
 ClearQuadSet:
 	;; INPUTS
@@ -179,8 +194,6 @@ DrawDualSet:
 	ld hl,DrawDualSetPhaseTwo
 	ld (@functionPointer-2),hl
 	jp Sync
-
-DrawDualFunctionPointer: dw 0
 
 DrawDualSetPhaseOne:
 	ld b,10		;; X
@@ -250,7 +263,6 @@ BlockCopy
 	;; HL source screen address 
 	;; B Lines / 2
 	;; C Words to copy
-	;; IY Destination X+Width+1,Y
 
 	;; Just like mirror colomns, put the SP at the right of the line
 	@copyNextLine
@@ -264,7 +276,9 @@ BlockCopy
 			ld d,(hl)		;; Load de with the pixel byte from hl
 			inc hl
 			ld e,(hl)
-			inc hl		
+			inc hl
+			;ld d,%11110000
+			;ld e,%11110000		
 			push de			;; Push it into the copy
 		djnz @copyLine		
 		ld sp,(StackBackup)
