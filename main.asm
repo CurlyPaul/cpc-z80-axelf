@@ -15,7 +15,6 @@ Start:
 	ld a,0
 	call &BC0E	; scr_set_mode 0 - 16 colors
 	
-
         di
         ld hl,&c9fb
         ld (&0038),hl
@@ -41,18 +40,20 @@ SyncForScreenSetUp:   ld b,&f5
 	call Palette_Init
 	ld ix,ScreenDrawTable
 
+SyncAndFlipBuffer:   ld b,&f5
+        in a,(c)
+        rra
+        jr nc,SyncAndFlipBuffer + 2
+
+	call SwitchScreenBuffer	
+	jr @checkscreentable
+
 Sync:   ld b,&f5
         in a,(c)
         rra
         jr nc,Sync + 2
-
-	call SwitchScreenBuffer	
-
-	;; a jump table would mean reducing a into descrete values
-	;; if I use a descreasing ticker
-	;; when the ticker reaches zero
-	;; increment a pointer to 
-
+	@checkscreentable
+	;; TODO Add events to the track at the points I want to change, and use the fake switch statement to change which screen gets drawn
 	ld a,(PLY_AKG_TICKDECREASINGCOUNTER)	;; PLY_AKG_TICKDECREASINGCOUNTER but defined in a way winape doesn't get	
 	cp a,1
 	jr nz,@doDrawing
@@ -78,16 +79,17 @@ Sync:   ld b,&f5
 	@saveIndexAndDoDrawing
 		ld (ScreenIndexCountdown),a
 	@doDrawing:
+		call PLY_AKG_Play
 		call DrawDualSet:JumpDrawRountine	
- 	      	call PLY_AKG_Play
+
 jr Sync
 
 ScreenIndexCountdown	db 16	;; TODO Should use some code to init this
 
 ScreenDrawTable:	
-	dw DrawSingleSet
+	dw ClearDualSet
 	db 15
-	dw ClearSingleSet	;; TODO Having this here leaves me with a blank frame
+	dw ClearDualSet	;; TODO Having this here leaves me with a blank frame
 	db 1
 	dw DrawDualSet
 	db 15
@@ -162,6 +164,25 @@ ClearSingleSet:
 ret
 
 DrawDualSet:
+
+	call DrawDualSetPhaseOne:@functionPointer
+
+	ld hl,(@functionPointer-2)
+	ld de,DrawDualSetPhaseOne
+	sbc hl,de
+	
+	jr z,@setPhaseTwo
+		ld hl,DrawDualSetPhaseOne
+		ld (@functionPointer-2),hl
+		jp SyncAndFlipBuffer
+	@setPhaseTwo
+	ld hl,DrawDualSetPhaseTwo
+	ld (@functionPointer-2),hl
+	jp Sync
+
+DrawDualFunctionPointer: dw 0
+
+DrawDualSetPhaseOne:
 	ld b,10		;; X
 	ld c,110	;; Y	
 	call GetScreenPos
@@ -175,7 +196,21 @@ DrawDualSet:
 		push hl
 		pop iy
 	pop hl	;; Hl now holds the source address		
+ret	
+
+DrawDualSetPhaseTwo
+	ld b,10		;; X
+	ld c,110	;; Y	
+	call GetScreenPos
 	
+	push hl
+		ld b,46+BlockWidth+1	;; X
+		ld c,110		;; Y
+		call GetScreenPos	;; <-- this is wasteful as the line number won't change
+		push hl
+		pop iy	;; destination address
+	pop hl	;; Hl now holds the source address
+
 	ld b, BlockHeight/2
 	ld c, 20/2 + 2	;; BlockWidth / (bytes per word) + Adjust for way SP moves before writing
 	call BlockCopy
@@ -194,7 +229,6 @@ ClearDualSet:
 ret	
 
 ClearArea
-	@clearNextLine
 	push bc			;; Preserve the width in C
 		push hl		;; Preserve HL while we add the X values		
 			ld (hl),&ff
@@ -208,7 +242,7 @@ ClearArea
 		call GetNextAltLine
 
 	pop bc	
-	djnz @clearNextLine
+	djnz ClearArea
 ret
 
 BlockCopy
@@ -313,8 +347,7 @@ DrawColumns:
 
 	ld b,BlockHeight/2	;; No. lines tall /2
 
-
-	;; TODO Is this actually faster?
+	;; TODO it seems to be missing the bottom row
 	_mirrorColumns:
 	push bc
 	push hl		;; Preserve the scr address of the first byte of the first line
@@ -354,7 +387,6 @@ ret
 DrawColumn:
 	;; INPUTS
 	;; HL = Starting screen address -> Mutates, has coord of the last line
-	;; (IX) = Top of the VU
 	;; C = Width
 	
 	push bc
@@ -364,19 +396,24 @@ DrawColumn:
 		add a
 		ld e,a
 		sra e	;; And then divide by two as I'm only drawing alt. lines
+		inc e	;; Now add a line to save a zero check
 	pop bc
 
-	push bc
-		ld a,BlockHeight/2
-		sub e		;; A = LineCount - NumberOfColouredLines = number of lines to blankout
-		ld b,a
-		ld d,&ff
-		call DrawColouredLine
-	pop bc
 
 @drawColours
-	ld b,e		;; B = the top line of the VU
 
+_drawBlackLines:
+	ld a,BlockHeight/2
+	sub e		;; A now holds the of lines to clear
+	ld b,e		;; E = lines lines left to draw after black
+
+	push bc	;; Need to preserve the width held in C
+		ld b,a
+		ld a,%00001111
+		ld (PixelToDraw-1),a
+		call DrawColouredLine
+			
+	pop bc
 _drawRedLines:
 	ld a,b
 	sub 25		;; Red threshold/2
@@ -390,7 +427,8 @@ _drawRedLines:
 		ld b,a		;; B = lines to draw after red are drawn
 		push bc		
 			ld b,e	;; * becuase I need trash b here which is tracking the number of lines I will draw
-			ld d,%11000000
+			ld a,%11000000
+			ld (PixelToDraw-1),a
 			call DrawColouredLine
 		pop bc
 	
@@ -406,7 +444,8 @@ _drawOrangeLines:
 		ld b,a
 		push bc
 			ld b,e	
-			ld d,%00001100
+			ld a,%00001100
+			ld (PixelToDraw-1),a
 			call DrawColouredLine
 		pop bc
 
@@ -421,12 +460,14 @@ _drawYellowLines:
 		ld b,a
 		push bc
 			ld b,e	
-			ld d,%11001100
+			ld a,%11001100
+			ld (PixelToDraw-1),a
 			call DrawColouredLine
 		pop bc
 
 	_drawGreenLines:
-		ld d,%00000000
+		ld a,%00000000
+		ld (PixelToDraw-1),a
 		call drawColouredLine
 
 ret
@@ -435,15 +476,14 @@ DrawColouredLine:
 	;; INPUTS
 	;; HL = Scr Address
 	;; B = Number of lines to draw
-	;; D = Byte to draw
 	;; C = width
+	;; DESTROYS BC DE
+	;; MUTATES HL to the adddress of the first byte of the last line
 	bit 7,b
-	ret nz
-
-	push bc		;; Preserve the width in C
-	push de		;; Preserve the pallet colour for the next row	
+	ret nz		;; TODO Despite never being true, this causes a reset with dual columns
+	push bc		;; Preserve the width in C	
 		push hl		;; Preserve HL while we add the X values		
-			ld (hl),d	;; TODO Could self mod this and save another push pop
+			ld (hl),&00:PixelToDraw	;; TODO Could self mod this and save another push pop
 			push hl
 			pop de
 			inc de
@@ -451,9 +491,9 @@ DrawColouredLine:
 			ldir			
 		pop hl		;; Return HL to the start of the row
 		call GetNextAltLine
-	pop de
 	pop bc	
 	djnz DrawColouredLine
+	ret
 ret
 
 ScreenStartAddressFlag:	db 48  

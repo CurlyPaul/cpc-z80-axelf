@@ -8,6 +8,7 @@ BrightYellow equ &4a
 SeaGreen equ &42
 Black equ &54
 Orange equ &4E
+White equ &40
 
 ColourPalette: ; hardware colours
 
@@ -16,13 +17,13 @@ defb SeaGreen 		;; #0
 defb BrightRed 		;; #1 
 defb Orange 		;; #2  
 defb BrightYellow	;; #3 
-defb &4B 		;; #4 
+defb White 		;; #4 
 defb &5B 		;; #5
-defb &53 		;; #6
+defb White 		;; #6
 defb &5E 		;; #7 
 defb &58 		;; #8 
 defb &5D 		;; #9 
-defb &5F 		;; #10
+defb White 		;; #10
 defb &5B 		;; #11
 defb &4B 		;; #12
 defb &4C 		;; #13

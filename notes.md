@@ -59,5 +59,10 @@ from that I can work out the length of a bar, and at which points I need to swit
 
 There are 4 bars
 
+## Speed notes
 
+24107 cycles for a dual draw
+23668
 
+3172 to draw the colours
+2850 
