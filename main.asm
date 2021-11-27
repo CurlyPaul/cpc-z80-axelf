@@ -38,89 +38,100 @@ SyncForScreenSetUp:   ld b,&f5
 	call ClearScreen
 
 	call Palette_Init
-	ld ix,ScreenDrawTable
+	
+	halt
+	halt
 
-SyncAndFlipBuffer:   ld b,&f5
-        in a,(c)
-        rra
-        jr nc,SyncAndFlipBuffer + 2
-
-	call SwitchScreenBuffer	
-	jr @checkscreentable
+PlayMusicAndSync
+	call PLY_AKG_Play
 
 Sync:   ld b,&f5
         in a,(c)
         rra
         jr nc,Sync + 2
-	@checkscreentable
-	;; TODO Add events to the track at the points I want to change, and use the fake switch statement to change which screen gets drawn
-	ld a,(PLY_AKG_TICKDECREASINGCOUNTER)	;; PLY_AKG_TICKDECREASINGCOUNTER but defined in a way winape doesn't get	
-	cp a,1
-	jr nz,@doDrawing
-		;; decrement our slow ticker
-		ld a,(ScreenIndexCountdown)
-		dec a
-		jr nz,@saveIndexAndDoDrawing
-			inc ix
-			inc ix
-			inc ix
-			ld a,(ix)
-			cp a,0
-			jr nz,@resetCountdownAndChangeScreen
-				ld ix,ScreenDrawTable	;; Reset the screen script to the start
-				ld a,(ix)
-			@resetCountdownAndChangeScreen
-			ld h,(ix+1)
-			ld l,a
-			ld (JumpDrawRountine-2),hl
+	
+	xor a
+	add 1:@screenFlipToggle
+	
+	jr z,@doLayoutCheck
+		xor a
+		ld (@screenFlipToggle-1),a
+		call SwitchScreenBuffer
+	@doLayoutCheck
 
-			ld a,(ix+2)
-			
-	@saveIndexAndDoDrawing
-		ld (ScreenIndexCountdown),a
+	ld a,(PLY_AKG_EVENT)		
+	cp a,0
+	jr z,@doDrawing	
+
+		bit 0,a
+		jr z,@checkForDual
+			call ClearForNextSet
+			ld hl,DrawSingleSet
+			ld (DrawRoutine-2),hl
+			ld hl,ClearSingleSet
+			ld (ClearRoutine-2),hl
+			jr @doDrawing		
+ 
+		@checkForDual
+		bit 1,a
+		jr z,@setQuad
+			call ClearForNextSet
+			ld hl,DrawDualSet
+			ld (DrawRoutine-2),hl
+			ld hl,ClearDualSet
+			ld (ClearRoutine-2),hl
+			jr @doDrawing	
+
+		@setQuad
+			call ClearForNextSet
+			ld hl,DrawQuadSet
+			ld (DrawRoutine-2),hl
+			ld hl,ClearQuadSet
+			ld (ClearRoutine-2),hl
+
 	@doDrawing:
-		call PLY_AKG_Play
-		call DrawQuadSet:JumpDrawRountine	
+		call DrawSingleSet:DrawRoutine	
+jr PlayMusicAndSync
 
-jr Sync
-
-ScreenIndexCountdown	db 16	;; TODO Should use some code to init this
-
-ScreenDrawTable:	
-	dw ClearDualSet
-	db 15
-	dw ClearDualSet	;; TODO Having this here leaves me with a blank frame
-	db 1
-	dw DrawDualSet
-	db 15
-	dw ClearDualSet
-	db 1
-	dw DrawSingleSet
-	db 15
-	dw ClearSingleSet
-	db 1
-	dw DrawQuadSet
-	db 15
-	dw ClearQuadSet
-	db 1
-	dw 0	
-
-;; TODO these all need to be padded out so that they are the same length
+ClearForNextSet:
+	call ClearSingleSet:ClearRoutine
+ret
+	
+;; TODO these all need to be padded out so that they are the same length and some of them are too long still
 DrawQuadSet:
 	call DrawQuadSetPhaseOne:@quadNextDraw
 ret		
 
 DrawQuadSetPhaseOne:
-	call DrawDualSetPhaseOne		
+	ld b,10		;; X
+	ld c,110	;; Y	
+	call GetScreenPos
+	call DrawColumns
+		
 	ld hl,DrawQuadSetPhaseTwo
 	ld (@quadNextDraw-2),hl
-	jp Sync
+ret
 
 DrawQuadSetPhaseTwo:
-	call DrawDualSetPhaseTwo
+	ld b,10		;; X
+	ld c,110	;; Y	
+	call GetScreenPos
+	
+	push hl
+		ld b,46+BlockWidth+1	;; X
+		ld c,110		;; Y
+		call GetScreenPos	;; <-- this is wasteful as the line number won't change
+		push hl
+		pop iy	;; destination address
+	pop hl	;; Hl now holds the source address
+
+	ld b, BlockHeight/2
+	ld c, 20/2 + 2	;; BlockWidth / (bytes per word) + Adjust for way SP moves before writing
+	call BlockCopy
+
 	ld hl,DrawQuadSetPhaseThree
 	ld (@quadNextDraw-2),hl
-	jp Sync
+ret
 
 DrawQuadSetPhaseThree:
 	;; Now copy what we just drew into the top half of the screen
@@ -143,10 +154,65 @@ DrawQuadSetPhaseThree:
 
 	ld hl,DrawQuadSetPhaseOne
 	ld (@quadNextDraw-2),hl
-	jp SyncAndFlipBuffer
+	
+	ld a,1
+	ld (@screenFlipToggle-1),a
+ret
 
 ClearQuadSet:
 	;; INPUTS
+	;; TODO Learn about defining macros!!
+	ld b,10			;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
+	
+	call ClearArea	
+
+	call SwitchScreenBuffer
+
+	ld b,10			;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
+	
+	call ClearArea
+
+	ld b,10			;; X
+	ld c,10			;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth+BlockWidth+16	
+	
+	call ClearArea	
+
+	call SwitchScreenBuffer
+
+	ld b,10			;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
+	
+	call ClearArea	
+
+	call SwitchScreenBuffer
+
+	ld b,10			;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
+	
+	call ClearArea
+
 	call ClearDualSet
 
 	ld b,10			;; X
@@ -164,6 +230,9 @@ DrawSingleSet:
 	ld c,110	;; Y
 	call GetScreenPos
 	call DrawColumns
+
+	ld a,1
+	ld (@screenFlipToggle-1),a
 ret
 
 ClearSingleSet:
@@ -176,39 +245,32 @@ ClearSingleSet:
 	ld c,BlockWidth+2	;; Don't understand why I need a +2 here	
 	
 	call ClearArea
+
+	call SwitchScreenBuffer
+
+	ld b,28			;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth+2	;; Don't understand why I need a +2 here	
+	
+	call ClearArea
+
 ret
 
 DrawDualSet:
-
-	call DrawDualSetPhaseOne:@functionPointer
-
-	ld hl,(@functionPointer-2)
-	ld de,DrawDualSetPhaseOne
-	sbc hl,de
-	
-	jr z,@setPhaseTwo
-		ld hl,DrawDualSetPhaseOne
-		ld (@functionPointer-2),hl
-		jp SyncAndFlipBuffer
-	@setPhaseTwo
-	ld hl,DrawDualSetPhaseTwo
-	ld (@functionPointer-2),hl
-	jp Sync
+	call DrawDualSetPhaseOne:@dualNextDraw
+ret
 
 DrawDualSetPhaseOne:
 	ld b,10		;; X
 	ld c,110	;; Y	
 	call GetScreenPos
+	call DrawColumns
 	
-	push hl	;; Preseve the address of the first block
-		call DrawColumns
-	
-		ld b,46+BlockWidth+1	;; X
-		ld c,110		;; Y
-		call GetScreenPos	;; <-- this is wasteful as the line number won't change
-		push hl
-		pop iy
-	pop hl	;; Hl now holds the source address		
+	ld hl,DrawDualSetPhaseTwo
+	ld (@dualNextDraw-2),hl	
 ret	
 
 DrawDualSetPhaseTwo
@@ -227,10 +289,27 @@ DrawDualSetPhaseTwo
 	ld b, BlockHeight/2
 	ld c, 20/2 + 2	;; BlockWidth / (bytes per word) + Adjust for way SP moves before writing
 	call BlockCopy
+
+	ld hl,DrawDualSetPhaseOne
+	ld (@dualNextDraw-2),hl
+
+	ld a,1
+	ld (@screenFlipToggle-1),a
 ret
 
 ClearDualSet:
 	;; INPUTS
+	ld b,10			;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
+	
+	call ClearArea	
+
+	call SwitchScreenBuffer
+
 	ld b,10			;; X
 	ld c,110		;; Y
 	call GetScreenPos	;; HL = starting screen position
@@ -299,6 +378,7 @@ BlockCopy
 	djnz @copyNextLine
 ret
 
+;; TODO Replace this with a pre-saved track of data
 AYRegRead:
 	;; INPUT
 	;; A = AY Reg to read
@@ -361,7 +441,6 @@ DrawColumns:
 
 	ld b,BlockHeight/2	;; No. lines tall /2
 
-	;; TODO it seems to be missing the bottom row
 	_mirrorColumns:
 	push bc
 	push hl		;; Preserve the scr address of the first byte of the first line
@@ -493,11 +572,11 @@ DrawColouredLine:
 	;; C = width
 	;; DESTROYS BC DE
 	;; MUTATES HL to the adddress of the first byte of the last line
-	bit 7,b
-	ret nz		;; TODO Despite never being true, this causes a reset with dual columns
+	;bit 7,b
+	;ret nz		;; TODO Despite never being true, this causes a reset with dual columns
 	push bc		;; Preserve the width in C	
 		push hl		;; Preserve HL while we add the X values		
-			ld (hl),&00:PixelToDraw	;; TODO Could self mod this and save another push pop
+			ld (hl),&00:PixelToDraw
 			push hl
 			pop de
 			inc de
@@ -507,7 +586,6 @@ DrawColouredLine:
 		call GetNextAltLine
 	pop bc	
 	djnz DrawColouredLine
-	ret
 ret
 
 ScreenStartAddressFlag:	db 48  
@@ -515,7 +593,7 @@ ScreenOverflowAddress: 	dw &BFFF
 BackBufferAddress: 	dw &8000 
 StackBackUp		dw 0
 BlockWidth equ 20
-BlockHeight equ 76
+BlockHeight equ 66
 
 read "./libs/CPC_V2_SimplePalette.asm"
 read "./libs/CPC_SimpleScreenSetUp.asm"

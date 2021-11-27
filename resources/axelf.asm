@@ -342,12 +342,6 @@ AxelF_Instrument5
 
 ; The indexes of the effect blocks used by this song.
 AxelF_EffectBlockTable
-AxelF_DisarkPointerRegionStart8
-	dw AxelF_EffectBlock_P14P176P246	; Index 0
-AxelF_DisarkPointerRegionEnd8
-
-AxelF_EffectBlock_P14P176P246
-	db 14, 176, 246
 
 AxelF_DisarkByteRegionEnd0
 
@@ -462,10 +456,6 @@ AxelF_Subsong0_Track0
 
 	db 172
 	db 5	; New Instrument (5).
-	db 60	; Waits for 1 line.
-
-	db 124	; No note, but effects.
-	db 0	; Index to an effect block.
 	db 61, 127	; Waits for 128 lines.
 
 
@@ -555,27 +545,33 @@ AxelF_Subsong0_SpeedTrack0
 ; The event tracks
 AxelF_Subsong0_EventTrack0
 	db 2	; Value: 1.
-	db 5	; Wait for 3 lines.
+	db 21	; Wait for 11 lines.
 	db 4	; Value: 2.
+	db 1	; Wait for 1 lines.
+	db 2	; Value: 1.
+	db 1	; Wait for 1 lines.
+	db 4	; Value: 2.
+	db 11	; Wait for 6 lines.
+	db 2	; Value: 1.
+	db 1	; Wait for 1 lines.
+	db 4	; Value: 2.
+	db 11	; Wait for 6 lines.
+	db 2	; Value: 1.
+	db 1	; Wait for 1 lines.
+	db 4	; Value: 2.
+	db 1	; Wait for 1 lines.
+	db 2	; Value: 1.
 	db 3	; Wait for 2 lines.
-	db 6	; Value: 3.
+	db 4	; Value: 2.
 	db 1	; Wait for 1 lines.
 	db 8	; Value: 4.
-	db 10	; Value: 5.
+	db 2	; Value: 1.
 	db 1	; Wait for 1 lines.
-	db 12	; Value: 6.
+	db 4	; Value: 2.
 	db 1	; Wait for 1 lines.
-	db 14	; Value: 7.
+	db 2	; Value: 1.
 	db 1	; Wait for 1 lines.
-	db 16	; Value: 8.
-	db 5	; Wait for 3 lines.
-	db 18	; Value: 9.
-	db 3	; Wait for 2 lines.
-	db 20	; Value: 10.
-	db 1	; Wait for 1 lines.
-	db 22	; Value: 11.
-	db 1	; Wait for 1 lines.
-	db 24	; Value: 12.
-	db 199	; Wait for 100 lines.
+	db 8	; Value: 4.
+	db 157	; Wait for 79 lines.
 
 AxelF_Subsong0_DisarkByteRegionEnd0
