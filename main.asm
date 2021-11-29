@@ -83,7 +83,6 @@ Sync:   ld b,&f5
  
 		@checkForDual
 		bit 1,a
-		
 		jr z,@setQuad;; TODO Hacked away
 			call ClearForNextSet
 			ld hl,DrawDualSet
@@ -104,11 +103,11 @@ Sync:   ld b,&f5
 			ld (IncrementRoutine-2),hl
 
 	@doDrawing:
-		call DrawDualSet:DrawRoutine	
+		call DrawQuadSet:DrawRoutine	
 jr PlayMusicAndSync
 
 ClearForNextSet:
-	call ClearDualSet:ClearRoutine
+	call ClearQuadSet:ClearRoutine
 ret
 	
 ;; TODO these all need to be padded out so that they are the same length and some of them are too long still
@@ -176,70 +175,93 @@ ret
 
 ClearQuadSet:
 	;; TODO 96436 cycles long, definetly needs chopping down
-
+	;; 38367 - still some to go though
 	;; INPUTS
 	;; TODO Learn about defining macros!!
-	ld b,10			;; X
+
+	;; BOTTOM LEFT
+	ld b,10+BlockWidth+3	;; X
 	ld c,110		;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
-	
-	call ClearArea	
-
-	call SwitchScreenBuffer
-
-	ld b,10			;; X
-	ld c,110		;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
+	ld c,BlockWidth/2+2	
 	
 	call ClearArea
 
-	ld b,10			;; X
+	;; BOTTOM RIGHT
+	ld b,46+BlockWidth+1	;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth/2+2	
+	
+	call ClearArea	
+	
+	;; TOP LEFT
+	ld b,10+BlockWidth+3	;; X
 	ld c,10			;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth+BlockWidth+16	
+	ld c,BlockWidth/2+2	
 	
 	call ClearArea	
 
-	call SwitchScreenBuffer
-
-	ld b,10			;; X
-	ld c,110		;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
-	
-	call ClearArea	
-
-	call SwitchScreenBuffer
-
-	ld b,10			;; X
-	ld c,110		;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
-	
-	call ClearArea
-
-	call ClearDualSet
-
-	ld b,10			;; X
+	;; TOP RIGHT
+	ld b,46+BlockWidth+1	;; X
 	ld c,10			;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth+BlockWidth+16	
+	ld c,BlockWidth/2+2	
 	
 	call ClearArea	
+
+	;; SWITCH AND REPEAT
+	call SwitchScreenBuffer
+
+	;; BOTTOM LEFT
+	ld b,10+BlockWidth+3	;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth/2+2	
+	
+	call ClearArea
+
+	;; BOTTOM RIGHT
+	ld b,46+BlockWidth+1	;; X
+	ld c,110		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth/2+2	
+	
+	call ClearArea	
+	
+	;; TOP LEFT
+	ld b,10+BlockWidth+3	;; X
+	ld c,10		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth/2+2	
+	
+	call ClearArea	
+
+	;; TOP RIGHT
+	ld b,46+BlockWidth+1	;; X
+	ld c,10		;; Y
+	call GetScreenPos	;; HL = starting screen position
+	
+	ld b,BlockHeight/2
+	ld c,BlockWidth/2+2	
+	
+	call ClearArea	
+
 ret	
 
 DrawSingleSet:
@@ -251,27 +273,28 @@ DrawSingleSet:
 
 	ld a,1
 	ld (@screenFlipToggle-1),a
+	
 ret
 
 ClearSingleSet:
 	;; INPUTS
-	ld b,28			;; X
+	ld b,28+BlockWidth+3	;; Xpos plus width, plus 2 becasue the sp moves before writing
 	ld c,110		;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth+2	;; Don't understand why I need a +2 here	
+	ld c,BlockWidth/2+2		
 	
 	call ClearArea
 
 	call SwitchScreenBuffer
 
-	ld b,28			;; X
+	ld b,28+BlockWidth+3	;; X
 	ld c,110		;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth+2	;; Don't understand why I need a +2 here	
+	ld c,BlockWidth/2+2		
 	
 	call ClearArea
 
@@ -317,37 +340,57 @@ ret
 
 ClearDualSet:
 	;; TODO 24115 - also far too slow
+	;; 18089 - still needs some more
 	;; INPUTS
-	ld b,10			;; X
+	ld b,46+BlockWidth+1	;; X
 	ld c,110		;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
+	ld c,BlockWidth+9	
 	
 	call ClearArea	
 
 	call SwitchScreenBuffer
 
-	ld b,10			;; X
+	ld b,46+BlockWidth+1	;; X
 	ld c,110		;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth+BlockWidth+16	;; Don't understand why I need a +2 here
+	ld c,BlockWidth+9	
 	
 	call ClearArea	
 ret	
 
 ClearArea
+	;; INPUTS
+	;; HL	=  scr start of the area to clear
+	;; C	= bytes to clear 	
 	push bc			;; Preserve the width in C
-		push hl		;; Preserve HL while we add the X values		
-			ld (hl),&ff
-			push hl
-			pop de
-			inc de
-			ld b,0
-			ldir	;; TODO this could also use the stack		
+		push hl		;; Preserve HL while we add the X values
+		
+			;ld a,10
+			;add l ;; BlockWidth/2
+			;ld l,a
+			ld d,%1111000
+			ld e,%1111000
+			ld b,c
+			di
+			ld (StackBackUp),sp
+			ld sp,hl
+			@clearLine
+				push de
+			djnz @clearLine
+			ld sp,(StackBackUp)
+			ei
+
+			;ld (hl),&ff
+			;push hl
+			;pop de
+			;inc de
+			;ld b,0
+			;ldir	;; TODO this could also use the stack		
 	
 		pop hl		;; Return HL to the start of the row	
 		call GetNextAltLine
