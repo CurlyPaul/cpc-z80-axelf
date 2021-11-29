@@ -176,92 +176,53 @@ ret
 ClearQuadSet:
 	;; TODO 96436 cycles long, definetly needs chopping down
 	;; 38367 - still some to go though
+	;; 36118 - it's faster to do them in two rows
 	;; INPUTS
 	;; TODO Learn about defining macros!!
 
-	;; BOTTOM LEFT
-	ld b,10+BlockWidth+3	;; X
-	ld c,110		;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth/2+2	
-	
-	call ClearArea
 
-	;; BOTTOM RIGHT
+	;; BOTTOM ROW
 	ld b,46+BlockWidth+1	;; X
 	ld c,110		;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth/2+2	
-	
-	call ClearArea	
-	
-	;; TOP LEFT
-	ld b,10+BlockWidth+3	;; X
-	ld c,10			;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth/2+2	
+	ld c,BlockWidth+9	
 	
 	call ClearArea	
 
-	;; TOP RIGHT
+	;; TOP ROW
 	ld b,46+BlockWidth+1	;; X
 	ld c,10			;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth/2+2	
+	ld c,BlockWidth+9	
 	
 	call ClearArea	
 
 	;; SWITCH AND REPEAT
 	call SwitchScreenBuffer
 
-	;; BOTTOM LEFT
-	ld b,10+BlockWidth+3	;; X
-	ld c,110		;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth/2+2	
-	
-	call ClearArea
-
-	;; BOTTOM RIGHT
+	;; BOTTOM ROW
 	ld b,46+BlockWidth+1	;; X
 	ld c,110		;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth/2+2	
-	
-	call ClearArea	
-	
-	;; TOP LEFT
-	ld b,10+BlockWidth+3	;; X
-	ld c,10		;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth/2+2	
+	ld c,BlockWidth+9	
 	
 	call ClearArea	
 
-	;; TOP RIGHT
+	;; TOP ROW
 	ld b,46+BlockWidth+1	;; X
-	ld c,10		;; Y
+	ld c,10			;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth/2+2	
+	ld c,BlockWidth+9	
 	
 	call ClearArea	
-
 ret	
 
 DrawSingleSet:
@@ -340,7 +301,7 @@ ret
 
 ClearDualSet:
 	;; TODO 24115 - also far too slow
-	;; 18089 - still needs some more
+	;; 18089 - still needs more
 	;; INPUTS
 	ld b,46+BlockWidth+1	;; X
 	ld c,110		;; Y
