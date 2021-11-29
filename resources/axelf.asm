@@ -572,6 +572,9 @@ AxelF_Subsong0_EventTrack0
 	db 2	; Value: 1.
 	db 1	; Wait for 1 lines.
 	db 8	; Value: 4.
-	db 157	; Wait for 79 lines.
+	db 27	; Wait for 14 lines.
+	db 0	; Escape code.
+	db 240	; Escaped value.
+	db 127	; Wait for 64 lines.
 
 AxelF_Subsong0_DisarkByteRegionEnd0

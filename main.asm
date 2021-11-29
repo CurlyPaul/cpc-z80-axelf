@@ -8,6 +8,7 @@
         org &1000
 nolist
 ;write direct 'axelf.bin',&1000
+;FlashBorder equ 1
 
 run Start
 Start:
@@ -29,6 +30,9 @@ Start:
 	call Palette_AllBackground
 	call ClearScreen
 
+	ld ix,VolumeTrack+1		;; This currently needs to be preseved throughout
+
+
 SyncForScreenSetUp:   ld b,&f5
         in a,(c)
         rra
@@ -42,6 +46,8 @@ SyncForScreenSetUp:   ld b,&f5
 	halt
 	halt
 
+
+;; I need to keep to 19968 cycles between calls
 PlayMusicAndSync
 	call PLY_AKG_Play
 
@@ -60,7 +66,8 @@ Sync:   ld b,&f5
 	@doLayoutCheck
 
 	ld a,(PLY_AKG_EVENT)		
-	cp a,0
+	cp a,0	
+	;jr @doDrawing
 	jr z,@doDrawing	
 
 		bit 0,a
@@ -70,16 +77,21 @@ Sync:   ld b,&f5
 			ld (DrawRoutine-2),hl
 			ld hl,ClearSingleSet
 			ld (ClearRoutine-2),hl
+			ld hl,IncrementSingleVolume
+			ld (IncrementRoutine-2),hl
 			jr @doDrawing		
  
 		@checkForDual
 		bit 1,a
-		jr z,@setQuad
+		
+		jr z,@setQuad;; TODO Hacked away
 			call ClearForNextSet
 			ld hl,DrawDualSet
 			ld (DrawRoutine-2),hl
 			ld hl,ClearDualSet
 			ld (ClearRoutine-2),hl
+			ld hl,IncrementDualVolume
+			ld (IncrementRoutine-2),hl
 			jr @doDrawing	
 
 		@setQuad
@@ -88,13 +100,15 @@ Sync:   ld b,&f5
 			ld (DrawRoutine-2),hl
 			ld hl,ClearQuadSet
 			ld (ClearRoutine-2),hl
+			ld hl,IncrementQuadVolume
+			ld (IncrementRoutine-2),hl
 
 	@doDrawing:
-		call DrawSingleSet:DrawRoutine	
+		call DrawDualSet:DrawRoutine	
 jr PlayMusicAndSync
 
 ClearForNextSet:
-	call ClearSingleSet:ClearRoutine
+	call ClearDualSet:ClearRoutine
 ret
 	
 ;; TODO these all need to be padded out so that they are the same length and some of them are too long still
@@ -134,6 +148,7 @@ DrawQuadSetPhaseTwo:
 ret
 
 DrawQuadSetPhaseThree:
+	;; TODO 17498 - this might be too much
 	;; Now copy what we just drew into the top half of the screen
 	ld b,10			;; X
 	ld c,110		;; Y
@@ -160,6 +175,8 @@ DrawQuadSetPhaseThree:
 ret
 
 ClearQuadSet:
+	;; TODO 96436 cycles long, definetly needs chopping down
+
 	;; INPUTS
 	;; TODO Learn about defining macros!!
 	ld b,10			;; X
@@ -226,6 +243,7 @@ ClearQuadSet:
 ret	
 
 DrawSingleSet:
+
 	ld b,28		;; X
 	ld c,110	;; Y
 	call GetScreenPos
@@ -298,6 +316,7 @@ DrawDualSetPhaseTwo
 ret
 
 ClearDualSet:
+	;; TODO 24115 - also far too slow
 	;; INPUTS
 	ld b,10			;; X
 	ld c,110		;; Y
@@ -378,43 +397,36 @@ BlockCopy
 	djnz @copyNextLine
 ret
 
-;; TODO Replace this with a pre-saved track of data
-AYRegRead:
-	;; INPUT
-	;; A = AY Reg to read
-	;; OUTPUT
-	;; A = Reg Value
-	;; DESTROYS BC
-		push bc
-			ld b,&f4
-			ld c,a
-			out (c),c	;#f4 Regnum
+IncrementVolumeTrack:
+	Call IncrementDualVolume:IncrementRoutine
+	ld a,(ix)
+	cp 0 
+	jr z,resetEqualiser
+		ret
+	resetEqualiser:
+		ld ix,VolumeTrack
 
-			ld bc,&F6C0	;Select REG
-			out (c),c	
+ifdef FlashBorder
+        ld bc,#7f10
+        out (c),c
+        ld a,#4b
+        out (c),a
+endif
+ret
 
-			ld bc,&f600	;Inactive
-			out (c),c
+IncrementSingleVolume:
+	inc ix
+ret
 
-			;; PPI port A set to input, PPI port B set to input,
-			;; PPI port C (lower) set to output, PPI port C (upper) set to output
-			ld bc,&f700+%10010010
-			out (c),c
+IncrementDualVolume:
+	inc ix
+	inc ix
+ret
 
-			ld bc,&F640	;Read VALUE
-			out (c),c	
-		pop bc
-
-		ld b,&F4		;#f4 value
-		in a,(c)
-
-		;; PPI port A set to output, PPI port B set to input,
-		;; PPI port C (lower) set to output, PPI port C (upper) set to output
-		ld bc,&f700+%10000010
-		out (c),c
-
-		ld bc,&f600		;inactive
-		out (c),c
+IncrementQuadVolume:
+	inc ix
+	inc ix
+	inc ix
 ret
 
 DrawColumns:
@@ -424,8 +436,9 @@ DrawColumns:
 
 	push hl
 		ld c,6			;; bytes wide
+		ld e,(ix)
 		call DrawColumn
-
+		call IncrementVolumeTrack
 	pop hl			;; Restore the scr address of the first row drawn
 	push hl
 	
@@ -435,8 +448,9 @@ DrawColumns:
 		add 7
 		ld l,a
 		ld c,3
+		ld e,(ix)
 		call DrawColumn
-
+		call IncrementVolumeTrack
 	pop hl			;; Restore the scr address of the first row drawn
 
 	ld b,BlockHeight/2	;; No. lines tall /2
@@ -481,25 +495,14 @@ DrawColumn:
 	;; INPUTS
 	;; HL = Starting screen address -> Mutates, has coord of the last line
 	;; C = Width
+	;; E = Volume setting
 	
-	push bc
-		ld a,8 	;; Channel A volume
-		call AYRegRead
-		add a	;; Value is in the range 0-15 and our vu is 75 lines tall, so multiply by 3
-		add a
-		ld e,a
-		sra e	;; And then divide by two as I'm only drawing alt. lines
-		inc e	;; Now add a line to save a zero check
-	pop bc
-
-
-@drawColours
-
 _drawBlackLines:
 	ld a,BlockHeight/2
 	sub e		;; A now holds the of lines to clear
 	ld b,e		;; E = lines lines left to draw after black
-
+	jr z,_drawRedLines
+	
 	push bc	;; Need to preserve the width held in C
 		ld b,a
 		ld a,%00001111
@@ -572,8 +575,6 @@ DrawColouredLine:
 	;; C = width
 	;; DESTROYS BC DE
 	;; MUTATES HL to the adddress of the first byte of the last line
-	;bit 7,b
-	;ret nz		;; TODO Despite never being true, this causes a reset with dual columns
 	push bc		;; Preserve the width in C	
 		push hl		;; Preserve HL while we add the X values		
 			ld (hl),&00:PixelToDraw
@@ -593,10 +594,15 @@ ScreenOverflowAddress: 	dw &BFFF
 BackBufferAddress: 	dw &8000 
 StackBackUp		dw 0
 BlockWidth equ 20
-BlockHeight equ 66
+BlockHeight equ 62
 
 read "./libs/CPC_V2_SimplePalette.asm"
 read "./libs/CPC_SimpleScreenSetUp.asm"
+
+;; This needs to be &0480 bytes long
+VolumeTrack:
+incbin "./resources/volumetrack.bin"
+dw 0
 
 ;write direct 'music.bin',&4000
 org &4000

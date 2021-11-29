@@ -61,5 +61,5 @@ Music_Start:
         ;include "./resources/axelf_playerconfig.asm"
         
         ;include "./resources/axelf.asm"
-	read "./artifacts/simpletest.asm"
+	read "./artifacts/axelf_winape.asm"
 Music_End:
