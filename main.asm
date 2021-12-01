@@ -30,7 +30,7 @@ Start:
 	call Palette_AllBackground
 	call ClearScreen
 
-	ld ix,VolumeTrack+1		;; This currently needs to be preseved throughout
+	ld ix,VolumeTrack+1		;; IX currently needs to be preseved throughout
 
 
 SyncForScreenSetUp:   ld b,&f5
@@ -49,7 +49,7 @@ SyncForScreenSetUp:   ld b,&f5
 
 ;; I need to keep to 19968 cycles between calls
 PlayMusicAndSync
-	call PLY_AKG_Play
+	call PLY_AKG_Play 	;; 1041 cycles!!
 
 Sync:   ld b,&f5
         in a,(c)
@@ -58,138 +58,161 @@ Sync:   ld b,&f5
 	
 	xor a
 	add 1:@screenFlipToggle
-	
 	jr z,@doLayoutCheck
 		xor a
 		ld (@screenFlipToggle-1),a
-		call SwitchScreenBuffer
+		call SwitchScreenBuffer				;; Switch the back buffer to the front here
+		
+		xor a
+		add 0:@clearPreviousToggle
+		jr z,@doLayoutCheck
+			xor a
+			ld (@clearPreviousToggle-1),a
+			call ClearSingleSetGfx:ClearPreviousGfxRoutine	
 	@doLayoutCheck
-
 	ld a,(PLY_AKG_EVENT)		
 	cp a,0	
 	;jr @doDrawing
 	jr z,@doDrawing	
+		call ClearSingleSetGfx:ClearCurrentGfxRoutine
 
+		ld hl,(ClearCurrentGfxRoutine-2)
+		ld (ClearPreviousGfxRoutine-2),hl
+
+		ld a,1
+		ld (@clearPreviousToggle-1),a
+		
+		ld a,(PLY_AKG_EVENT)		
 		bit 0,a
+		;jr @checkForDual
 		jr z,@checkForDual
-			call ClearForNextSet
-			ld hl,DrawSingleSet
+			ld hl,DrawSingleSetGfx
 			ld (DrawRoutine-2),hl
-			ld hl,ClearSingleSet
-			ld (ClearRoutine-2),hl
+
+			ld hl,ClearSingleSetGfx
+			ld (ClearCurrentGfxRoutine-2),hl
+
 			ld hl,IncrementSingleVolume
 			ld (IncrementRoutine-2),hl
+
 			jr @doDrawing		
  
 		@checkForDual
 		bit 1,a
-		jr z,@setQuad;; TODO Hacked away
-			call ClearForNextSet
-			ld hl,DrawDualSet
+		;jr @setQuad
+		jr z,@setQuad
+			ld hl,DrawDualSetGfx
 			ld (DrawRoutine-2),hl
-			ld hl,ClearDualSet
-			ld (ClearRoutine-2),hl
+			
+			ld hl,ClearDualSetGfx
+			ld (ClearCurrentGfxRoutine-2),hl
+
 			ld hl,IncrementDualVolume
 			ld (IncrementRoutine-2),hl
+
 			jr @doDrawing	
 
-		@setQuad
-			call ClearForNextSet
-			ld hl,DrawQuadSet
+		@setQuad		
+			ld hl,DrawQuadSetGfx
 			ld (DrawRoutine-2),hl
-			ld hl,ClearQuadSet
-			ld (ClearRoutine-2),hl
+
+			ld hl,ClearQuadSetGfx
+			ld (ClearCurrentGfxRoutine-2),hl
+
 			ld hl,IncrementQuadVolume
 			ld (IncrementRoutine-2),hl
 
 	@doDrawing:
-		call DrawQuadSet:DrawRoutine	
-jr PlayMusicAndSync
+		call DrawSingleSetGfx:DrawRoutine	
+jp PlayMusicAndSync
 
-ClearForNextSet:
-	call ClearQuadSet:ClearRoutine
-ret
-	
-;; TODO these all need to be padded out so that they are the same length and some of them are too long still
-DrawQuadSet:
-	call DrawQuadSetPhaseOne:@quadNextDraw
+;; TODO Do these functions need to be padded to the same length so that ply in called regularly
+
+
+;; Drawing more than one VU requires more than one vbc to be able to draw all of them
+;; These exist so that I can incremently call different phases
+DrawQuadSetGfx:
+	call DrawQuadSetGfxPhaseOne:@quadNextDraw
 ret		
 
-DrawQuadSetPhaseOne:
-	ld b,10		;; X
-	ld c,110	;; Y	
+DrawDualSetGfx:
+	call DrawDualSetGfxPhaseOne:@dualNextDraw
+ret
+
+
+DrawQuadSetGfxPhaseOne:
+	ld b,11		;; X
+	ld c,128	;; Y	
 	call GetScreenPos
 	call DrawColumns
 		
-	ld hl,DrawQuadSetPhaseTwo
+	ld hl,DrawQuadSetGfxPhaseTwo
 	ld (@quadNextDraw-2),hl
 ret
 
-DrawQuadSetPhaseTwo:
-	ld b,10		;; X
-	ld c,110	;; Y	
-	call GetScreenPos
-	
+DrawQuadSetGfxPhaseTwo:
+	ld b,46+BlockWidth+1	;; X
+	ld c,128		;; Y
+	call GetScreenPos	
 	push hl
-		ld b,46+BlockWidth+1	;; X
-		ld c,110		;; Y
-		call GetScreenPos	;; <-- this is wasteful as the line number won't change
-		push hl
-		pop iy	;; destination address
-	pop hl	;; Hl now holds the source address
+	pop iy	;; destination address
+	
+	ld b,11		;; X
+	ld c,128	;; Y	
+	call GetScreenPos	;; HL source address
+				;; <-- this is wasteful as the line number won't change	
 
 	ld b, BlockHeight/2
 	ld c, 20/2 + 2	;; BlockWidth / (bytes per word) + Adjust for way SP moves before writing
 	call BlockCopy
 
-	ld hl,DrawQuadSetPhaseThree
+	ld hl,DrawQuadSetGfxPhaseThree
 	ld (@quadNextDraw-2),hl
 ret
 
-DrawQuadSetPhaseThree:
+DrawQuadSetGfxPhaseThree:
 	;; TODO 17498 - this might be too much
+	;; 16990
 	;; Now copy what we just drew into the top half of the screen
-	ld b,10			;; X
-	ld c,110		;; Y
-	call GetScreenPos	;; HL == start point
-
+	ld b,46+BlockWidth+1	;; X
+	ld c,10		;; Y
+	call GetScreenPos	
 	push hl
-		ld b,46+BlockWidth+1	;; X
-		ld c,10		;; Y
-		call GetScreenPos	;; <-- this is wasteful as the line number won't change
-
-		push hl
-		pop iy		;; IY = destination address 
-	pop hl
+	pop iy	;; destination address
+	
+	ld b,11		;; X
+	ld c,128	;; Y	
+	call GetScreenPos	;; HL source address
+				;; <-- this is wasteful as the line number won't change	l
 
 	ld b, BlockHeight/2
-	ld c, 29
+	ld c, 28
 	call BlockCopy
 
-	ld hl,DrawQuadSetPhaseOne
+	ld hl,DrawQuadSetGfxPhaseOne
 	ld (@quadNextDraw-2),hl
 	
 	ld a,1
 	ld (@screenFlipToggle-1),a
 ret
 
-ClearQuadSet:
+ClearQuadSetGfx:
 	;; TODO 96436 cycles long, definetly needs chopping down
 	;; 38367 - still some to go though
 	;; 36118 - it's faster to do them in two rows
+	;; 25293
+	;; 21192
+	;; 19313
 	;; INPUTS
 	;; TODO Learn about defining macros!!
 
-
 	;; BOTTOM ROW
 	ld b,46+BlockWidth+1	;; X
-	ld c,110		;; Y
+	ld c,128		;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth+9	
-	
-	call ClearArea	
+	call ClearFullRow	
 
 	;; TOP ROW
 	ld b,46+BlockWidth+1	;; X
@@ -197,167 +220,130 @@ ClearQuadSet:
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth+9	
-	
-	call ClearArea	
-
-	;; SWITCH AND REPEAT
-	call SwitchScreenBuffer
-
-	;; BOTTOM ROW
-	ld b,46+BlockWidth+1	;; X
-	ld c,110		;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth+9	
-	
-	call ClearArea	
-
-	;; TOP ROW
-	ld b,46+BlockWidth+1	;; X
-	ld c,10			;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth+9	
-	
-	call ClearArea	
+	call ClearFullRow		
 ret	
 
-DrawSingleSet:
-
+DrawSingleSetGfx:
+	;; 10178
 	ld b,28		;; X
-	ld c,110	;; Y
+	ld c,128			;; Y
 	call GetScreenPos
 	call DrawColumns
 
 	ld a,1
 	ld (@screenFlipToggle-1),a
-	
 ret
 
-ClearSingleSet:
+ClearSingleSetGfx:
 	;; INPUTS
-	ld b,28+BlockWidth+3	;; Xpos plus width, plus 2 becasue the sp moves before writing
-	ld c,110		;; Y
+	;; 9630
+	;; 5959
+	ld b,30+BlockWidth+2	;; Xpos plus width, plus 2 becasue the sp moves before writing
+	ld c,128		;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
-	ld c,BlockWidth/2+2		
-	
-	call ClearArea
-
-	call SwitchScreenBuffer
-
-	ld b,28+BlockWidth+3	;; X
-	ld c,110		;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth/2+2		
-	
-	call ClearArea
-
+	@clearNextLineSingleSet
+	ld de,&ffff
+	di
+		ld (StackBackUp),sp
+		ld sp,hl
+		repeat 12
+		push de
+		rend	
+		ld sp,(StackBackUp)
+	ei		
+	call GetNextAltLine
+	djnz @clearNextLineSingleSet
 ret
 
-DrawDualSet:
-	call DrawDualSetPhaseOne:@dualNextDraw
-ret
-
-DrawDualSetPhaseOne:
-	ld b,10		;; X
-	ld c,110	;; Y	
+DrawDualSetGfxPhaseOne:
+	ld b,11		;; X
+	ld c,128	;; Y	
 	call GetScreenPos
 	call DrawColumns
 	
-	ld hl,DrawDualSetPhaseTwo
+	ld hl,DrawDualSetGfxPhaseTwo
 	ld (@dualNextDraw-2),hl	
 ret	
 
-DrawDualSetPhaseTwo
-	ld b,10		;; X
-	ld c,110	;; Y	
-	call GetScreenPos
-	
-	push hl
-		ld b,46+BlockWidth+1	;; X
-		ld c,110		;; Y
-		call GetScreenPos	;; <-- this is wasteful as the line number won't change
-		push hl
-		pop iy	;; destination address
-	pop hl	;; Hl now holds the source address
+;; TODO Alignment is still out somewhere
 
+DrawDualSetGfxPhaseTwo
+	ld b,46+BlockWidth+1	;; X
+	ld c,128		;; Y
+	call GetScreenPos	
+	push hl
+	pop iy	;; destination address
+	
+	ld b,11			;; X
+	ld c,128		;; Y	
+	call GetScreenPos 	;; Hl now holds the source address
+	
 	ld b, BlockHeight/2
 	ld c, 20/2 + 2	;; BlockWidth / (bytes per word) + Adjust for way SP moves before writing
 	call BlockCopy
 
-	ld hl,DrawDualSetPhaseOne
+	ld hl,DrawDualSetGfxPhaseOne
 	ld (@dualNextDraw-2),hl
 
 	ld a,1
 	ld (@screenFlipToggle-1),a
 ret
 
-ClearDualSet:
+ClearDualSetGfx:
 	;; TODO 24115 - also far too slow
 	;; 18089 - still needs more
+	;; 12369 Set Clear individually
+	;; 13295 Set clear in a row (although 3*12 words)
+	;; 12673 with specialised clear function and enough to place graphics at edges
 	;; INPUTS
 	ld b,46+BlockWidth+1	;; X
-	ld c,110		;; Y
+	ld c,128		;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
-	ld b,BlockHeight/2
-	ld c,BlockWidth+9	
-	
-	call ClearArea	
-
-	call SwitchScreenBuffer
-
-	ld b,46+BlockWidth+1	;; X
-	ld c,110		;; Y
-	call GetScreenPos	;; HL = starting screen position
-	
-	ld b,BlockHeight/2
-	ld c,BlockWidth+9	
-	
-	call ClearArea	
+	ld b,BlockHeight/2	
+	call ClearFullRow	
 ret	
 
-ClearArea
+ClearFullRow:
 	;; INPUTS
-	;; HL	=  scr start of the area to clear
-	;; C	= bytes to clear 	
-	push bc			;; Preserve the width in C
-		push hl		;; Preserve HL while we add the X values
-		
-			;ld a,10
-			;add l ;; BlockWidth/2
-			;ld l,a
-			ld d,%1111000
-			ld e,%1111000
-			ld b,c
-			di
-			ld (StackBackUp),sp
-			ld sp,hl
-			@clearLine
-				push de
-			djnz @clearLine
-			ld sp,(StackBackUp)
-			ei
+	;; HL = Left most scr address to clear
+	;; B  = Lines to clear
 
-			;ld (hl),&ff
-			;push hl
-			;pop de
-			;inc de
-			;ld b,0
-			;ldir	;; TODO this could also use the stack		
-	
-		pop hl		;; Return HL to the start of the row	
-		call GetNextAltLine
+	ld de,&ffff
+	di
+		ld (StackBackUp),sp
+		ld sp,hl
+		repeat 28
+		push de
+		rend	
+		ld sp,(StackBackUp)
+	ei		
+	call GetNextAltLine
 
-	pop bc	
-	djnz ClearArea
+	djnz ClearFullRow
+ret
+
+ClearFullRowWrong:
+	;; INPUTS
+	;; HL = Left most scr address to clear
+	;; B  = Lines to clear
+
+	ld de,&ffff
+	ld d,%11110000
+	ld e,%11110000
+	di
+		ld (StackBackUp),sp
+		ld sp,hl
+		repeat 28
+		push de
+		rend	
+		ld sp,(StackBackUp)
+	ei		
+	call GetNextAltLine
+
+	djnz ClearFullRowWrong
 ret
 
 BlockCopy
@@ -365,6 +351,7 @@ BlockCopy
 	;; HL source screen address 
 	;; B Lines / 2
 	;; C Words to copy
+	;; TODO could this be unfurled like clear?
 
 	;; Just like mirror colomns, put the SP at the right of the line
 	@copyNextLine
@@ -379,8 +366,8 @@ BlockCopy
 			inc hl
 			ld e,(hl)
 			inc hl
-			;ld d,%11110000
-			;ld e,%11110000		
+			;ld d,%11110011
+			;ld e,%11110011		
 			push de			;; Push it into the copy
 		djnz @copyLine		
 		ld sp,(StackBackup)
@@ -405,9 +392,9 @@ IncrementVolumeTrack:
 	Call IncrementDualVolume:IncrementRoutine
 	ld a,(ix)
 	cp 0 
-	jr z,resetEqualiser
+	jr z,resetVolumeTrack
 		ret
-	resetEqualiser:
+	resetVolumeTrack:
 		ld ix,VolumeTrack
 
 ifdef FlashBorder
@@ -463,19 +450,20 @@ DrawColumns:
 	push bc
 	push hl		;; Preserve the scr address of the first byte of the first line
 			
-			;; IY must hold the scr address of the end of the line
-			;; So HL is needed point to the data at the start of the line
+			;; Need to manouvre IY so that it contains the address of the last pixel on the right
+			;; HL needs to be reset to hold the staring position of the first pixel
 			ld a,23		;; full the width of the drawing area in bytes
 			;; need to do this manually as won't be able to push/pop HL
 			;; iy = hl + a		;; If HL == 84C6 Assert IY = 84C6 + 40d = 84EE
 			add   a, l    ; A = A+L
 			ld    iyl,a    ; iyl = A+L	
   			adc   a,h    	; A = A+L+H+carry
-    			sub   iyl       ; A = iyl+carry
-    			ld    iyh, a    ; D = iyl+carry
+    		sub   iyl       ; A = iyl+carry
+    		ld    iyh, a    ; D = iyl+carry
 			
+			;; TODO unfurl this as well as it's always 6 words
 			ld b,6			;; Words to copy
-			di			;; We automatically get an ei when RST #38 triggers, thus screwing us over as that appears to write a byte to the stack 
+			di				;; We automatically get an ei when RST #38 triggers, thus screwing us over as that appears to write a byte to the stack 
 			ld (StackBackup),sp
 			ld sp,iy		;; Put the stack pointer at far right of the area we want to draw
 			_copyLine:
