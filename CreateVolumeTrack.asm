@@ -35,7 +35,7 @@ ClearScreen:
         ld a,&4c
         out (c),a
 
-	ld ix,source_address-1
+	ld ix,source_address
 
 Sync:   ld b,&f5
         in a,(c)
@@ -68,12 +68,24 @@ Sync:   ld b,&f5
 
 
 DoMusic
+
+        ;Calls the player, shows some colors to see the consumed CPU.
+        ld bc,&7f10
+        out (c),c
+        ld a,&4b
+        out (c),a
+        call PLY_AKG_Play
+        ld bc,&7f10
+        out (c),c
+        ld a,&54
+        out (c),a
+
 	ld a,8 	;; Channel A volume
 	call AYRegRead
 	add a	;; A = A*2
-	add a	;; A = A*4		
-	rra
-	inc a
+	add a	;; A = A*4	- Scale up to 60	
+	rra	;; Half it because we only draw half the lines
+	inc a	;; Add one because zero is a problem
 
 	ld (ix),a
 	inc ix
@@ -87,17 +99,6 @@ DoMusic
 
 	ld (ix),a
 	inc ix
-
-        ;Calls the player, shows some colors to see the consumed CPU.
-        ld bc,&7f10
-        out (c),c
-        ld a,&4b
-        out (c),a
-        call PLY_AKG_Play
-        ld bc,&7f10
-        out (c),c
-        ld a,&54
-        out (c),a
 
         ;Endless loop!
         jr Sync

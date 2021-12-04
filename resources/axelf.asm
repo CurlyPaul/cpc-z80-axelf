@@ -39,6 +39,7 @@ AxelF_DisarkPointerRegionStart5
 	dw AxelF_Instrument3
 	dw AxelF_Instrument4
 	dw AxelF_Instrument5
+	dw AxelF_Instrument6
 AxelF_DisarkPointerRegionEnd5
 
 AxelF_EmptyInstrument
@@ -245,20 +246,18 @@ AxelF_Instrument4
 	db 1	; The speed (>0, 0 for 256).
 	db 249	; Soft only. Volume: 15. Volume only.
 
-	db 121	; Soft only. Volume: 15.
+	db 113	; Soft only. Volume: 14.
 	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
 	db -12	; Arpeggio.
 
 	db 241	; Soft only. Volume: 14. Volume only.
 
-	db 241	; Soft only. Volume: 14. Volume only.
+	db 233	; Soft only. Volume: 13. Volume only.
 
 	db 105	; Soft only. Volume: 13.
 	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
 	db -12	; Arpeggio.
 
-	db 233	; Soft only. Volume: 13. Volume only.
-
 	db 225	; Soft only. Volume: 12. Volume only.
 
 	db 225	; Soft only. Volume: 12. Volume only.
@@ -306,17 +305,239 @@ AxelF_Instrument4
 	db 137	; Soft only. Volume: 1. Volume only.
 
 	db 137	; Soft only. Volume: 1. Volume only.
+
+	db 0	; No Soft no Hard. Volume: 0. Noise? false.
 
 	db 6	; Loop to silence.
 
 AxelF_Instrument5
+	db 1	; The speed (>0, 0 for 256).
+	db 121	; Soft only. Volume: 15.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db -12	; Arpeggio.
+
+	db 113	; Soft only. Volume: 14.
+	db 64	; Additional data. Noise: 0. Pitch? false. Arp? true. Period? false.
+	db -12	; Arpeggio.
+
+	db 233	; Soft only. Volume: 13. Volume only.
+
+	db 225	; Soft only. Volume: 12. Volume only.
+
+	db 217	; Soft only. Volume: 11. Volume only.
+
+	db 209	; Soft only. Volume: 10. Volume only.
+
+	db 201	; Soft only. Volume: 9. Volume only.
+
+	db 193	; Soft only. Volume: 8. Volume only.
+
+	db 185	; Soft only. Volume: 7. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 177	; Soft only. Volume: 6. Volume only.
+
+	db 185	; Soft only. Volume: 7. Volume only.
+
+	db 185	; Soft only. Volume: 7. Volume only.
+
+	db 185	; Soft only. Volume: 7. Volume only.
+
+	db 185	; Soft only. Volume: 7. Volume only.
+
+	db 193	; Soft only. Volume: 8. Volume only.
+
+	db 193	; Soft only. Volume: 8. Volume only.
+
+	db 193	; Soft only. Volume: 8. Volume only.
+
+	db 193	; Soft only. Volume: 8. Volume only.
+
+	db 193	; Soft only. Volume: 8. Volume only.
+
+	db 193	; Soft only. Volume: 8. Volume only.
+
+	db 201	; Soft only. Volume: 9. Volume only.
+
+	db 201	; Soft only. Volume: 9. Volume only.
+
+	db 201	; Soft only. Volume: 9. Volume only.
+
+	db 201	; Soft only. Volume: 9. Volume only.
+
+	db 201	; Soft only. Volume: 9. Volume only.
+
+	db 209	; Soft only. Volume: 10. Volume only.
+
+	db 209	; Soft only. Volume: 10. Volume only.
+
+	db 209	; Soft only. Volume: 10. Volume only.
+
+	db 209	; Soft only. Volume: 10. Volume only.
+
+	db 209	; Soft only. Volume: 10. Volume only.
+
+	db 209	; Soft only. Volume: 10. Volume only.
+
+	db 217	; Soft only. Volume: 11. Volume only.
+
+	db 217	; Soft only. Volume: 11. Volume only.
+
+	db 217	; Soft only. Volume: 11. Volume only.
+
+	db 217	; Soft only. Volume: 11. Volume only.
+
+	db 225	; Soft only. Volume: 12. Volume only.
+
+	db 225	; Soft only. Volume: 12. Volume only.
+
+	db 225	; Soft only. Volume: 12. Volume only.
+
+	db 225	; Soft only. Volume: 12. Volume only.
+
+	db 233	; Soft only. Volume: 13. Volume only.
+
+	db 233	; Soft only. Volume: 13. Volume only.
+
+	db 241	; Soft only. Volume: 14. Volume only.
+
+	db 241	; Soft only. Volume: 14. Volume only.
+
+	db 241	; Soft only. Volume: 14. Volume only.
+
+	db 241	; Soft only. Volume: 14. Volume only.
+
+	db 241	; Soft only. Volume: 14. Volume only.
+
+	db 241	; Soft only. Volume: 14. Volume only.
+
+AxelF_Instrument5_Loop	db 241	; Soft only. Volume: 14. Volume only.
+
+	db 249	; Soft only. Volume: 15. Volume only.
+
+	db 7	; Loop.
+AxelF_DisarkWordForceReference8
+	dw AxelF_Instrument5_Loop	; Loop here.
+
+AxelF_Instrument6
 	db 15	; The speed (>0, 0 for 256).
-	db 0	; No Soft no Hard. Volume: 0. Noise? false.
-
-	db 145	; Soft only. Volume: 2. Volume only.
-
-	db 153	; Soft only. Volume: 3. Volume only.
-
 	db 161	; Soft only. Volume: 4. Volume only.
 
 	db 169	; Soft only. Volume: 5. Volume only.
@@ -335,7 +556,7 @@ AxelF_Instrument5
 
 	db 241	; Soft only. Volume: 14. Volume only.
 
-	db 241	; Soft only. Volume: 14. Volume only.
+	db 249	; Soft only. Volume: 15. Volume only.
 
 	db 6	; Loop to silence.
 
@@ -451,20 +672,18 @@ AxelF_Subsong0_Track0
 	db 60	; Waits for 1 line.
 
 	db 171
-	db 4	; New Instrument (4).
-	db 62 + 2 * 64	; Optimized wait for 4 lines.
-
-	db 172
-	db 5	; New Instrument (5).
+	db 6	; New Instrument (6).
 	db 61, 127	; Waits for 128 lines.
 
 
 AxelF_Subsong0_Track1
-	db 60	; Waits for 1 line.
-
 	db 128
 	db 0	; New Instrument (0).
-	db 61, 58	; Waits for 59 lines.
+	db 61, 44	; Waits for 45 lines.
+
+	db 171
+	db 4	; New Instrument (4).
+	db 61, 12	; Waits for 13 lines.
 
 	db 172
 	db 3	; New Instrument (3).
@@ -534,7 +753,8 @@ AxelF_Subsong0_Track2
 	db 45
 	db 60	; Waits for 1 line.
 
-	db 43
+	db 171
+	db 5	; New Instrument (5).
 	db 61, 127	; Waits for 128 lines.
 
 

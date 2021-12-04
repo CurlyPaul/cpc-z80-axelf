@@ -17,6 +17,5 @@ org #4000
 
     ;Comment/delete this line if not using sound effects.
     ;PLY_AKG_MANAGE_SOUND_EFFECTS = 1
-    PLY_AKG_STOP_SOUNDS = 1
     ;This is the player.
     include "..\libs\PlayerAkg.asm"

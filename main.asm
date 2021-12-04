@@ -6,11 +6,15 @@
         ;bankset 0
 
         org &1000
-nolist
-;write direct 'axelf.bin',&1000
+;nolist
+Release equ 1
 ;FlashBorder equ 1
 
-run Start
+ifdef Release
+	write direct 'axelf.bin',&1000
+endif 
+
+;run Start
 Start:
 
 	ld a,0
@@ -127,7 +131,7 @@ Sync:   ld b,&f5
 jp PlayMusicAndSync
 
 ;; TODO Do these functions need to be padded to the same length so that ply in called regularly
-
+;; TODO Channel A isn't very interesting to look at - generate fresh music track ;P
 
 ;; Drawing more than one VU requires more than one vbc to be able to draw all of them
 ;; These exist so that I can incremently call different phases
@@ -141,7 +145,7 @@ ret
 
 
 DrawQuadSetGfxPhaseOne:
-	ld b,11		;; X
+	ld b,12		;; X
 	ld c,128	;; Y	
 	call GetScreenPos
 	call DrawColumns
@@ -151,19 +155,17 @@ DrawQuadSetGfxPhaseOne:
 ret
 
 DrawQuadSetGfxPhaseTwo:
-	ld b,46+BlockWidth+1	;; X
+	ld b,12			;; X
 	ld c,128		;; Y
 	call GetScreenPos	
 	push hl
-	pop iy	;; destination address
+	pop iy	
 	
-	ld b,11		;; X
-	ld c,128	;; Y	
-	call GetScreenPos	;; HL source address
-				;; <-- this is wasteful as the line number won't change	
+	ld a,l
+	add 55
+	ld iyl,a	
 
 	ld b, BlockHeight/2
-	ld c, 20/2 + 2	;; BlockWidth / (bytes per word) + Adjust for way SP moves before writing
 	call BlockCopy
 
 	ld hl,DrawQuadSetGfxPhaseThree
@@ -171,23 +173,21 @@ DrawQuadSetGfxPhaseTwo:
 ret
 
 DrawQuadSetGfxPhaseThree:
-	;; TODO 17498 - this might be too much
-	;; 16990
 	;; Now copy what we just drew into the top half of the screen
 	ld b,46+BlockWidth+1	;; X
-	ld c,10		;; Y
+	ld c,12		;; Y
 	call GetScreenPos	
 	push hl
 	pop iy	;; destination address
 	
-	ld b,11		;; X
+	ld b,12		;; X
 	ld c,128	;; Y	
 	call GetScreenPos	;; HL source address
 				;; <-- this is wasteful as the line number won't change	l
 
 	ld b, BlockHeight/2
 	ld c, 28
-	call BlockCopy
+	call BlockCopyRow
 
 	ld hl,DrawQuadSetGfxPhaseOne
 	ld (@quadNextDraw-2),hl
@@ -197,14 +197,7 @@ DrawQuadSetGfxPhaseThree:
 ret
 
 ClearQuadSetGfx:
-	;; TODO 96436 cycles long, definetly needs chopping down
-	;; 38367 - still some to go though
-	;; 36118 - it's faster to do them in two rows
-	;; 25293
-	;; 21192
-	;; 19313
 	;; INPUTS
-	;; TODO Learn about defining macros!!
 
 	;; BOTTOM ROW
 	ld b,46+BlockWidth+1	;; X
@@ -216,7 +209,7 @@ ClearQuadSetGfx:
 
 	;; TOP ROW
 	ld b,46+BlockWidth+1	;; X
-	ld c,10			;; Y
+	ld c,12			;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2
@@ -225,7 +218,7 @@ ret
 
 DrawSingleSetGfx:
 	;; 10178
-	ld b,28		;; X
+	ld b,28				;; X
 	ld c,128			;; Y
 	call GetScreenPos
 	call DrawColumns
@@ -236,8 +229,6 @@ ret
 
 ClearSingleSetGfx:
 	;; INPUTS
-	;; 9630
-	;; 5959
 	ld b,30+BlockWidth+2	;; Xpos plus width, plus 2 becasue the sp moves before writing
 	ld c,128		;; Y
 	call GetScreenPos	;; HL = starting screen position
@@ -258,7 +249,7 @@ ClearSingleSetGfx:
 ret
 
 DrawDualSetGfxPhaseOne:
-	ld b,11		;; X
+	ld b,12		;; X
 	ld c,128	;; Y	
 	call GetScreenPos
 	call DrawColumns
@@ -267,8 +258,6 @@ DrawDualSetGfxPhaseOne:
 	ld (@dualNextDraw-2),hl	
 ret	
 
-;; TODO Alignment is still out somewhere
-
 DrawDualSetGfxPhaseTwo
 	ld b,46+BlockWidth+1	;; X
 	ld c,128		;; Y
@@ -276,7 +265,7 @@ DrawDualSetGfxPhaseTwo
 	push hl
 	pop iy	;; destination address
 	
-	ld b,11			;; X
+	ld b,12			;; X
 	ld c,128		;; Y	
 	call GetScreenPos 	;; Hl now holds the source address
 	
@@ -292,14 +281,9 @@ DrawDualSetGfxPhaseTwo
 ret
 
 ClearDualSetGfx:
-	;; TODO 24115 - also far too slow
-	;; 18089 - still needs more
-	;; 12369 Set Clear individually
-	;; 13295 Set clear in a row (although 3*12 words)
-	;; 12673 with specialised clear function and enough to place graphics at edges
 	;; INPUTS
 	ld b,46+BlockWidth+1	;; X
-	ld c,128		;; Y
+	ld c,128				;; Y
 	call GetScreenPos	;; HL = starting screen position
 	
 	ld b,BlockHeight/2	
@@ -325,51 +309,23 @@ ClearFullRow:
 	djnz ClearFullRow
 ret
 
-ClearFullRowWrong:
-	;; INPUTS
-	;; HL = Left most scr address to clear
-	;; B  = Lines to clear
-
-	ld de,&ffff
-	ld d,%11110000
-	ld e,%11110000
-	di
-		ld (StackBackUp),sp
-		ld sp,hl
-		repeat 28
-		push de
-		rend	
-		ld sp,(StackBackUp)
-	ei		
-	call GetNextAltLine
-
-	djnz ClearFullRowWrong
-ret
-
 BlockCopy
 	;; INPUTS
-	;; HL source screen address 
+	;; HL Source screen address
+	;; IY Dest screen address 
 	;; B Lines / 2
-	;; C Words to copy
-	;; TODO could this be unfurled like clear?
-
-	;; Just like mirror colomns, put the SP at the right of the line
-	@copyNextLine
-	push bc
 	push hl
-		ld b,c
 		di			 
 		ld (StackBackup),sp
-		ld sp,iy		;; Put the stack pointer at far right of the area we want to draw
-		@copyLine:
+		ld sp,iy:			;; Put the stack pointer at far right of the area we want to draw
+		;@copyLine
+		repeat 12
 			ld d,(hl)		;; Load de with the pixel byte from hl
 			inc hl
 			ld e,(hl)
-			inc hl
-			;ld d,%11110011
-			;ld e,%11110011		
+			inc hl	
 			push de			;; Push it into the copy
-		djnz @copyLine		
+		rend		
 		ld sp,(StackBackup)
 		ei
 	pop hl	;; restore the start address'
@@ -383,9 +339,42 @@ BlockCopy
 		push hl
 		pop iy
 	pop hl 
-	pop bc
 
-	djnz @copyNextLine
+	djnz BlockCopy
+ret
+
+BlockCopyRow
+	;; INPUTS
+	;; HL Source screen address
+	;; IY Dest screen address 
+	;; B Lines / 2
+	push hl
+		di			 
+		ld (StackBackup),sp
+		ld sp,iy:			;; Put the stack pointer at far right of the area we want to draw
+		repeat 27
+			ld d,(hl)		;; Load de with the pixel byte from hl
+			inc hl
+			ld e,(hl)
+			inc hl	
+			push de			;; Push it into the copy
+		rend		
+		ld sp,(StackBackup)
+		ei
+	pop hl	;; restore the start address'
+
+	call GetNextAltLine
+
+	push hl
+		push iy			;; IY is the stack pointer address
+		pop hl			;; pop it onto HL
+		call GetNextAltLine	;; so that I can advance to the next line
+		push hl
+		pop iy
+	pop hl 
+
+	dec b
+	jp nz,BlockCopyRow
 ret
 
 IncrementVolumeTrack:
@@ -422,9 +411,8 @@ ret
 
 DrawColumns:
 	;; INPUTS
-	;; HL = XY of the bounding box
-	;; Hard coded widths of columns, but should all be contained in here	
-
+	;; HL = XY
+	
 	push hl
 		ld c,6			;; bytes wide
 		ld e,(ix)
@@ -446,8 +434,7 @@ DrawColumns:
 
 	ld b,BlockHeight/2	;; No. lines tall /2
 
-	_mirrorColumns:
-	push bc
+	@mirrorColumns:	
 	push hl		;; Preserve the scr address of the first byte of the first line
 			
 			;; Need to manouvre IY so that it contains the address of the last pixel on the right
@@ -458,29 +445,26 @@ DrawColumns:
 			add   a, l    ; A = A+L
 			ld    iyl,a    ; iyl = A+L	
   			adc   a,h    	; A = A+L+H+carry
-    		sub   iyl       ; A = iyl+carry
-    		ld    iyh, a    ; D = iyl+carry
+    			sub   iyl       ; A = iyl+carry
+    			ld    iyh, a    ; D = iyl+carry
 			
-			;; TODO unfurl this as well as it's always 6 words
-			ld b,6			;; Words to copy
 			di				;; We automatically get an ei when RST #38 triggers, thus screwing us over as that appears to write a byte to the stack 
-			ld (StackBackup),sp
-			ld sp,iy		;; Put the stack pointer at far right of the area we want to draw
-			_copyLine:
+				ld (StackBackup),sp
+				ld sp,iy		;; Put the stack pointer at far right of the area we want to draw
+				repeat 6
 				ld d,(hl)		;; Load de with the pixel byte from hl
 				inc hl
 				ld e,(hl)
 				inc hl		
 				push de			;; Push it into the copy
-				djnz _copyLine		
-			ld sp,(StackBackup)
+				rend		
+				ld sp,(StackBackup)
 			ei
 	pop hl
-	pop bc
 	
 	Call GetNextAltLine
 
-	djnz _mirrorColumns	
+	djnz @mirrorColumns	
 ret
       
 DrawColumn:
@@ -596,8 +580,14 @@ VolumeTrack:
 incbin "./resources/volumetrack.bin"
 dw 0
 
-;write direct 'music.bin',&4000
+ifdef Release
+	write direct 'music.bin',&4000
+endif
+
 org &4000
 Music_Start:
 	read "./artifacts/axelf_winape.asm"
 Music_End:
+
+
+
