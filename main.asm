@@ -12,9 +12,11 @@ Release equ 1
 
 ifdef Release
 	write direct 'axelf.bin',&1000
+else
+	run Start
 endif 
 
-;run Start
+
 Start:
 
 	ld a,0
@@ -34,7 +36,7 @@ Start:
 	call Palette_AllBackground
 	call ClearScreen
 
-	ld ix,VolumeTrack+1		;; IX currently needs to be preseved throughout
+	ld ix,VolumeTrack+2		;; IX currently needs to be preseved throughout
 
 
 SyncForScreenSetUp:   ld b,&f5
@@ -131,7 +133,6 @@ Sync:   ld b,&f5
 jp PlayMusicAndSync
 
 ;; TODO Do these functions need to be padded to the same length so that ply in called regularly
-;; TODO Channel A isn't very interesting to look at - generate fresh music track ;P
 
 ;; Drawing more than one VU requires more than one vbc to be able to draw all of them
 ;; These exist so that I can incremently call different phases
@@ -186,7 +187,6 @@ DrawQuadSetGfxPhaseThree:
 				;; <-- this is wasteful as the line number won't change	l
 
 	ld b, BlockHeight/2
-	ld c, 28
 	call BlockCopyRow
 
 	ld hl,DrawQuadSetGfxPhaseOne
@@ -270,7 +270,6 @@ DrawDualSetGfxPhaseTwo
 	call GetScreenPos 	;; Hl now holds the source address
 	
 	ld b, BlockHeight/2
-	ld c, 20/2 + 2	;; BlockWidth / (bytes per word) + Adjust for way SP moves before writing
 	call BlockCopy
 
 	ld hl,DrawDualSetGfxPhaseOne
