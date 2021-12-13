@@ -82,26 +82,94 @@ DoMusic
 
 	ld a,8 	;; Channel A volume
 	call AYRegRead
-	add a	;; A = A*2
-	add a	;; A = A*4	- Scale up to 60	
-	rra	;; Half it because we only draw half the lines
-	inc a	;; Add one because zero is a problem
+	
+	;; Scaling to 10 lines
+	;; Multiply by 2
+	ld de,2
+	call DE_Times_A
+	ld a,l
+
+	;; Now divide by 3
+	ld c,a
+	ld d,3
+	call C_Div_D
+	ld a,c
+
+	;add a	;; A = A*2
+	;add a	;; A = A*4	- Scale up to 60	
+	;rra	;; Half it because we only draw half the lines
+	;inc a	;; Add one because zero is a problem
 
 	ld (ix),a
 	inc ix
 
 	ld a,10 	;; Channel C volume
 	call AYRegRead
-	add a
-	add a
-	rra	
-	inc a
+	;; Scaling to 10 lines
+	;; Multiply by 2
+	ld de,2
+	call DE_Times_A
+	ld a,l
+
+	;; Now divide by 3
+	ld c,a
+	ld d,3
+	call C_Div_D
+	ld a,c
+
+
+	;add a
+	;add a
+	;rra	
+	;inc a
 
 	ld (ix),a
 	inc ix
 
         ;Endless loop!
         jr Sync
+
+DE_Times_A:
+;Inputs:
+;     DE and A are factors
+;Outputs:
+;     A is not changed
+;     B is 0
+;     C is not changed
+;     DE is not changed
+;     HL is the product
+;Time:
+;     342+6x
+;
+     ld b,8          ;7           7
+     ld hl,0         ;10         10
+       add hl,hl     ;11*8       88
+       rlca          ;4*8        32
+       jr nc,$+3     ;(12|18)*8  96+6x
+         add hl,de   ;--         --
+       djnz $-5      ;13*7+8     99
+     ret             ;10         10
+
+C_Div_D:
+;Inputs:
+;     C is the numerator
+;     D is the denominator
+;Outputs:
+;     A is the remainder
+;     B is 0
+;     C is the result of C/D
+;     D,E,H,L are not changed
+;
+     ld b,8
+     xor a
+       sla c
+       rla
+       cp d
+       jr c,$+4
+         inc c
+         sub d
+       djnz $-8
+     ret
 
 SaveOnNextEvent:
 	nop ;; break here to copy values from memory

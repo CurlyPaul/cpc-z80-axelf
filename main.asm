@@ -377,7 +377,7 @@ BlockCopyRow
 ret
 
 IncrementVolumeTrack:
-	Call IncrementDualVolume:IncrementRoutine
+	Call IncrementSingleVolume:IncrementRoutine
 	ld a,(ix)
 	cp 0 
 	jr z,resetVolumeTrack
